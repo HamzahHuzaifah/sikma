@@ -3,7 +3,7 @@ const { User } = require('../models');
 require('dotenv').config();
 
 const SSO_SECRET = process.env.SSO_SECRET_KEY || 'sikma_spmb_secret_sso_key_2026';
-const SPMB_URL = process.env.SPMB_URL || 'http://localhost:5000';
+const SPMB_URL = process.env.SPMB_URL || 'https://spmb.mjic.sch.id';
 
 module.exports = {
   // Dipanggil saat Admin SIKMA klik tombol "Buka SPMB"
