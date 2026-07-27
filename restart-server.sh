@@ -19,8 +19,11 @@ npm install --production
 echo "[3/4] Mematikan proses SIKMA di port 5001..."
 kill -9 $(lsof -t -i:5001) 2>/dev/null || true
 
-# 6. Jalankan ulang server di background dengan disown
+# 6. Jalankan ulang server di background dengan disown (Untuk standalone)
 echo "[4/4] Menyalakan server SIKMA di port 5001..."
 nohup node app.js > app.log 2>&1 & disown
 
-echo "=== SUCCESS: Server SIKMA berhasil di-restart dan aktif di port 5001! ==="
+# 7. Restart via Passenger (Untuk cPanel)
+mkdir -p tmp
+touch tmp/restart.txt
+echo "=== SUCCESS: Server SIKMA berhasil di-restart! ==="
