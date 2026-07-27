@@ -22,13 +22,9 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd /home/mjir4837/repositories/sikma
-          git reset --hard
           git pull origin main
           source /home/mjir4837/nodevenv/repositories/sikma/22/bin/activate
           npm install --production
-          PID=$(ps aux | grep "node app.js" | grep -v grep | awk '{print $2}')
-          if [ ! -z "$PID" ]; then
-            kill -9 $PID
-          fi
-          nohup node app.js > app.log 2>&1 & disown
-          echo "Aplikasi SIKMA berhasil dimulai ulang!"
+          mkdir -p tmp
+          touch tmp/restart.txt
+          echo "Aplikasi SIKMA berhasil dimulai ulang via Passenger!"
