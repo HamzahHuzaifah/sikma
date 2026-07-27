@@ -1,0 +1,238 @@
+<%- include('partials/header') %>
+<%- include('partials/sidebar') %>
+
+<div class="w-full mx-auto pb-10">
+
+<%- include('components/page_header', { 
+  title: 'Laporan & Rekapitulasi Infak Harian', 
+  subtitle: 'Lihat histori pengumpulan dana infak harian santri/lembaga.',
+  actionHtml: ''
+}) %>
+
+<!-- Filter Horizontal (SPMB Style) -->
+<div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 mb-6">
+  <form action="/infak" method="GET" class="flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
+    
+    <div class="flex-grow min-w-[200px]">
+      <div class="relative">
+        <input 
+          type="text" 
+          name="search" 
+          value="<%= typeof search !== 'undefined' ? search : '' %>" 
+          placeholder="Cari uraian/keterangan..." 
+          class="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+        >
+        <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+      </div>
+    </div>
+
+    <div class="w-full md:w-32 shrink-0">
+      <input 
+        type="number" 
+        name="tahun" 
+        value="<%= typeof queryParams !== 'undefined' && queryParams.tahun ? queryParams.tahun : new Date().getFullYear() %>" 
+        placeholder="Tahun"
+        min="2000"
+        max="2100"
+        class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition"
+      >
+    </div>
+
+    <div class="w-full md:w-auto">
+      <select 
+        name="bulan" 
+        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition cursor-pointer"
+      >
+        <option value="">Semua Bulan</option>
+        <option value="1" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '1') ? 'selected' : '' %>>Januari</option>
+        <option value="2" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '2') ? 'selected' : '' %>>Februari</option>
+        <option value="3" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '3') ? 'selected' : '' %>>Maret</option>
+        <option value="4" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '4') ? 'selected' : '' %>>April</option>
+        <option value="5" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '5') ? 'selected' : '' %>>Mei</option>
+        <option value="6" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '6') ? 'selected' : '' %>>Juni</option>
+        <option value="7" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '7') ? 'selected' : '' %>>Juli</option>
+        <option value="8" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '8') ? 'selected' : '' %>>Agustus</option>
+        <option value="9" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '9') ? 'selected' : '' %>>September</option>
+        <option value="10" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '10') ? 'selected' : '' %>>Oktober</option>
+        <option value="11" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '11') ? 'selected' : '' %>>November</option>
+        <option value="12" <%= (typeof queryParams !== 'undefined' && queryParams.bulan == '12') ? 'selected' : '' %>>Desember</option>
+      </select>
+    </div>
+
+    <div class="w-full md:w-auto">
+      <select 
+        name="lembagaId" 
+        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition cursor-pointer"
+      >
+        <option value="">Semua Lembaga</option>
+        <% lembagas.forEach(lem => { %>
+          <option value="<%= lem.id %>" <%= filters.lembagaId == lem.id ? 'selected' : '' %>><%= lem.nama %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="flex gap-2 w-full md:w-auto shrink-0">
+      <button type="submit" class="bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-md hover:shadow-brand-500/10 active:scale-[0.98] transition text-sm">
+        Filter
+      </button>
+      <a href="/infak" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 font-bold p-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center">
+        Reset
+      </a>
+      <button 
+        type="button" 
+        onclick="openModalLaporan('/infak/cetak?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&lembagaId=<%= filters.lembagaId || '' %>')"
+        class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 px-4 rounded-xl border border-indigo-200 transition text-sm flex items-center gap-1.5"
+      >
+        <i class="bi bi-printer-fill"></i> Preview Laporan
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Tabel Laporan (SPMB Style) -->
+<div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mb-6">
+  <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <i class="bi bi-journal-text text-indigo-500 text-lg"></i>
+      <h3 class="font-bold text-slate-700">Histori Pengumpulan Infak</h3>
+    </div>
+  </div>
+  
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <th class="p-4 pl-6 w-16 text-center">No</th>
+          <th class="p-4">Tanggal</th>
+          <th class="p-4">No. Kwitansi</th>
+          <th class="p-4">Lembaga</th>
+          <th class="p-4 max-w-[300px]">Uraian</th>
+          <th class="p-4 text-right">Pemasukan</th>
+          <th class="p-4 pr-6 text-right font-extrabold text-slate-600">Total Akumulasi</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 text-sm text-slate-600 font-medium">
+        
+        <!-- Saldo Awal Row -->
+        <tr class="bg-slate-50/50">
+            <td class="p-4 pl-6 text-center text-xs">-</td>
+            <td class="p-4 text-xs font-mono"><%= filters.startDate ? new Date(filters.startDate).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-' %></td>
+            <td class="p-4 text-xs font-mono text-slate-400">-</td>
+            <td class="p-4 text-xs text-slate-400">-</td>
+            <td class="p-4 text-slate-500 font-semibold text-xs italic">Akumulasi Infak Sebelumnya</td>
+            <td class="p-4 text-right font-bold text-emerald-500"><%= saldoAwal > 0 ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(saldoAwal) : '-' %></td>
+            <td class="p-4 pr-6 text-right font-extrabold text-slate-700 bg-slate-100/50">
+                <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(saldoAwal) %>
+            </td>
+        </tr>
+
+        <% if (infakList.length === 0) { %>
+          <%- include('components/empty_state', {
+            colspan: 7,
+            message: 'Belum ada data infak pada rentang tanggal ini.'
+          }) %>
+        <% } %>
+
+        <% 
+        let no = (currentPage - 1) * limit + 1;
+        infakList.forEach(t => { 
+        %>
+          <tr class="hover:bg-slate-50 transition relative group">
+            <td class="p-4 pl-6 text-center text-xs text-slate-400"><%= no++ %></td>
+            <td class="p-4 text-xs font-mono text-slate-500 whitespace-nowrap">
+              <%= new Date(t.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) %>
+            </td>
+            <td class="p-4 text-xs font-mono text-slate-600"><%= t.nomor_kwitansi || '-' %></td>
+            <td class="p-4 text-xs font-semibold text-slate-700"><%= t.lembaga ? t.lembaga.nama : '-' %></td>
+            <td class="p-4 text-xs leading-relaxed max-w-[300px] truncate" title="<%= t.keterangan %>">
+              <%= t.keterangan || '-' %>
+              
+              <!-- Aksi Edit/Delete melayang saat hover -->
+              <div class="absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white/90 backdrop-blur-sm p-1.5 rounded-lg shadow-sm border border-slate-200 pointer-events-none group-hover:pointer-events-auto z-10">
+                <% 
+                  const getSlug = (lembagaName) => {
+                    const name = lembagaName.toLowerCase();
+                    if (name.includes('madrasah')) return 'mjic';
+                    if (name.includes('paudqu')) return 'paudqu';
+                    if (name.includes('tpq')) return 'tpq';
+                    if (name.includes('mdt')) return 'mdt';
+                    return 'mjic';
+                  };
+                %>
+                <button type="button" onclick="toggleKwitansiPreview(this, '/lembaga/<%= getSlug(t.lembaga ? t.lembaga.nama : 'Madrasah') %>/infak-kwitansi/<%= t.id %>?preview=1', 9)" class="text-indigo-500 hover:text-indigo-700 p-1 bg-indigo-50 rounded" title="Preview Kwitansi">
+                    <i class="bi bi-printer-fill text-xs"></i>
+                </button>
+                <form action="/infak/delete/<%= t.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus infak harian ini?');" class="inline m-0 p-0">
+                  <input type="hidden" name="redirectUrl" value="/infak">
+                  <button type="submit" class="text-rose-500 hover:text-rose-700 p-1 bg-rose-50 rounded" title="Hapus Transaksi">
+                    <i class="bi bi-trash3-fill text-xs"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+            <td class="p-4 text-right text-xs font-bold text-emerald-600">
+              <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.nominal) %>
+            </td>
+            <td class="p-4 pr-6 text-right text-sm font-extrabold text-indigo-700 bg-slate-50/50">
+              <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.saldoAkhir) %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% 
+      let queryStr = '';
+      if (typeof queryParams !== 'undefined') {
+        Object.keys(queryParams).forEach(key => {
+          if (key !== 'page' && key !== 'success' && key !== 'error') {
+            queryStr += `&${key}=${encodeURIComponent(queryParams[key])}`;
+          }
+        });
+      }
+  %>
+  <%- include('components/pagination', { currentPage, totalPages, totalItems, limit, queryStr }) %>
+</div>
+
+</div>
+
+<!-- Laporan Modal (Iframe) -->
+<div id="laporanModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-all p-4" style="display: none;">
+    <div class="bg-white p-0 rounded-2xl w-full max-w-5xl h-[95vh] relative flex flex-col shadow-2xl overflow-hidden ring-1 ring-slate-900/5">
+        <div class="bg-white p-4 border-b border-slate-100 flex justify-between items-center shadow-sm z-10 relative">
+            <h3 class="m-0 text-lg font-bold text-slate-700 flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
+                    <i class="bi bi-printer-fill text-indigo-500"></i>
+                </div>
+                Preview Cetak Laporan F4
+            </h3>
+            <button onclick="closeModalLaporan()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition-colors">
+                <i class="bi bi-x-lg text-sm font-bold"></i>
+            </button>
+        </div>
+        <div class="flex-1 bg-slate-200/50 overflow-hidden relative">
+            <div id="iframeLoader" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-0">
+                <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-indigo-500 mb-3"></div>
+                <p class="text-slate-400 text-sm font-medium">Memuat Laporan...</p>
+            </div>
+            <iframe id="laporanIframe" src="" class="w-full h-full border-none relative z-10 bg-transparent" onload="document.getElementById('iframeLoader').style.display='none'"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModalLaporan(url) {
+        document.getElementById('laporanModal').style.display = 'flex';
+        document.getElementById('iframeLoader').style.display = 'flex';
+        document.getElementById('laporanIframe').src = url;
+        document.body.style.overflow = 'hidden';
+    }
+    function closeModalLaporan() {
+        document.getElementById('laporanModal').style.display = 'none';
+        document.getElementById('laporanIframe').src = '';
+        document.body.style.overflow = 'auto';
+    }
+</script>
+
+<script src="/js/preview_kwitansi.js"></script>
+<%- include('partials/footer') %>

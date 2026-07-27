@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIKMA - Sistem Informasi Keuangan Madrasah</title>
+  <!-- Tailwind CSS v3 CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CSS Config -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts - Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons (Untuk Icon yang konsisten & bersih) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  
+  <!-- jQuery & Select2 -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+  <!-- Flatpickr CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  
+  <!-- Custom CSS (Select2, Flatpickr, Scrollbar overrides) -->
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bg-slate-50 print:bg-white text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- Global Loader Spinner -->
+  <div id="global-loader" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[9999] flex items-center justify-center hidden opacity-0 transition-opacity duration-300 print:hidden">
+    <div class="bg-white/90 backdrop-blur border border-slate-100 rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-4 max-w-xs text-center">
+      <div class="relative w-12 h-12">
+        <div class="absolute inset-0 rounded-full border-4 border-slate-100 border-t-brand-500 animate-spin"></div>
+      </div>
+      <div>
+        <h3 class="font-bold text-slate-800 text-sm">Memproses...</h3>
+        <p class="text-xs text-slate-500 mt-1">Mohon tunggu sebentar, sedang memuat data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Navbar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 print:hidden">
+    <div class="w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <!-- Logo -->
+        <a class="flex items-center gap-2" href="/">
+          <div class="bg-brand-500 text-white p-2 rounded-lg flex items-center justify-center shadow-md">
+            <i class="bi bi-wallet2 text-lg"></i>
+          </div>
+          <div>
+            <span class="font-bold text-xl tracking-tight text-brand-600">SIKMA</span>
+            <span class="hidden sm:inline text-xs text-slate-400 font-semibold border-l border-slate-200 pl-2 ml-2">Keuangan Madrasah</span>
+          </div>
+        </a>
+        
+        <!-- User Profile Dropdown -->
+        <div class="relative" id="profileDropdown">
+          <button onclick="toggleDropdown()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-full font-semibold text-sm text-slate-600 transition shadow-sm">
+            <i class="bi bi-person-circle text-brand-500 text-base"></i> 
+            <span><%= locals.user ? locals.user.nama_lengkap : (locals.username || 'Admin') %></span>
+            <i class="bi bi-chevron-down text-xs"></i>
+          </button>
+          <!-- Dropdown Menu -->
+          <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-lg py-1 z-50">
+            <a class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-600 font-medium transition" href="/users">
+              <i class="bi bi-person-badge"></i> Kelola Pengguna
+            </a>
+            <hr class="border-slate-100 my-1">
+            <a class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-semibold transition" href="/logout">
+              <i class="bi bi-box-arrow-right"></i> Keluar
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <script src="/js/header.js"></script>
+
+  <!-- Container Wrapper -->
+  <div class="w-full mx-auto flex-grow flex flex-col md:flex-row px-4 sm:px-6 lg:px-8 py-6 gap-6">

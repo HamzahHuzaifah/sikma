@@ -1,0 +1,31 @@
+<%
+  const currentPage = locals.currentPage || 1;
+  const totalPages = locals.totalPages || 1;
+  const totalItems = locals.totalItems || 0;
+  const limit = locals.limit || 10;
+  const queryStr = locals.queryStr || '';
+%>
+<% if (totalPages > 1) { %>
+<div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+  <span class="text-xs text-slate-500 font-medium">
+    Menampilkan <span class="font-bold text-slate-700"><%= (currentPage - 1) * limit + 1 %></span> sampai <span class="font-bold text-slate-700"><%= Math.min(currentPage * limit, totalItems) %></span> dari <span class="font-bold text-slate-700"><%= totalItems %></span> data
+  </span>
+  <div class="flex items-center gap-1">
+    <% if (currentPage > 1) { %>
+      <a href="?page=<%= currentPage - 1 %><%= queryStr %>" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-indigo-600 transition">Sebelumnya</a>
+    <% } else { %>
+      <button disabled class="px-3 py-1.5 text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed">Sebelumnya</button>
+    <% } %>
+
+    <div class="px-3 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg">
+      Halaman <%= currentPage %> dari <%= totalPages %>
+    </div>
+
+    <% if (currentPage < totalPages) { %>
+      <a href="?page=<%= currentPage + 1 %><%= queryStr %>" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-indigo-600 transition">Selanjutnya</a>
+    <% } else { %>
+      <button disabled class="px-3 py-1.5 text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed">Selanjutnya</button>
+    <% } %>
+  </div>
+</div>
+<% } %>

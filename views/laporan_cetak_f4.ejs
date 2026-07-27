@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title><%= title %></title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="/images/Logo%20Madrasah.webp">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="/css/laporan-cetak.css?v=2">
+</head>
+<body>
+    <div class="no-print action-buttons">
+        <button onclick="window.print()" class="btn-print"><i class="fas fa-print"></i> Cetak Laporan</button>
+        <button onclick="toggleEditLaporan()" class="btn-print" id="btnEditLaporan" style="background-color: #f59e0b;"><i class="fas fa-edit"></i> Edit Data</button>
+        
+        <% if (lembagaSingkatan === 'SEMUA' || lembagaSingkatan === 'MADRASAH') { %>
+        <div style="display:flex; align-items:center; gap: 10px; background: white; padding: 5px 15px; border-radius: 6px; border: 1px solid #ccc;">
+            <label for="ttdSelector" style="font-weight: bold; font-size: 14px;">Format TTD:</label>
+            <select id="ttdSelector" onchange="changeTTD(this.value)" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                <option value="madrasah" <%= lembagaSingkatan === 'MADRASAH' || lembagaSingkatan === 'SEMUA' ? 'selected' : '' %>>Tanda Tangan Madrasah</option>
+                <option value="paudqu" <%= lembagaSingkatan === 'PAUDQU' ? 'selected' : '' %>>Tanda Tangan PAUDQu</option>
+                <option value="tpq" <%= lembagaSingkatan === 'TPQ' ? 'selected' : '' %>>Tanda Tangan TPQ / MDT</option>
+            </select>
+        </div>
+        <% } %>
+
+        <div id="layoutControlsLaporan" class="no-print" style="display: none; margin-top: 15px; padding: 10px; background: white; border-radius: 6px; border: 1px solid #ccc; width: 100%; justify-content: center; gap: 10px; flex-wrap: wrap;">
+            <strong style="width: 100%; text-align: center; margin-bottom: 5px;">Geser Tata Letak:</strong>
+            <button type="button" onclick="moveLaporanLayout(0, -10)" class="btn-print" style="padding: 5px 10px; background-color: #475569; width: 45%;"><i class="fas fa-arrow-up"></i> Naik</button>
+            <button type="button" onclick="moveLaporanLayout(0, 10)" class="btn-print" style="padding: 5px 10px; background-color: #475569; width: 45%;"><i class="fas fa-arrow-down"></i> Turun</button>
+            <button type="button" onclick="moveLaporanLayout(-10, 0)" class="btn-print" style="padding: 5px 10px; background-color: #475569; width: 45%;"><i class="fas fa-arrow-left"></i> Kiri</button>
+            <button type="button" onclick="moveLaporanLayout(10, 0)" class="btn-print" style="padding: 5px 10px; background-color: #475569; width: 45%;"><i class="fas fa-arrow-right"></i> Kanan</button>
+        </div>
+    </div>
+
+    <div class="page-wrapper">
+        <img src="/images/<%= bgImage %>" class="print-bg-layer" alt="Background" />
+        <div id="previewF4ScaleContainer" style="width: 100%; overflow: hidden; position: relative; display: block;">
+            <div id="previewF4Wrapper" style="width: 21.59cm; min-height: 33cm; height: auto; background-color: #ffffff; position: relative; font-family: 'Arial', sans-serif; font-size: 10pt; color: #000; box-sizing: border-box; flex-shrink: 0; overflow: visible; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <!-- content overlay -->
+                <div id="contentOverlayLaporan" style="position: relative; width: 100%; height: auto; min-height: 100%; padding-top: 1.5cm; padding-left: 1.5cm; padding-right: 1.5cm; padding-bottom: 1.5cm; box-sizing: border-box;">
+                    <table style="width: 100%; border-collapse: collapse; border: none;">
+                        <thead class="print-only-layout">
+                            <tr><td style="height: 2cm; border: none !important; padding: 0;"></td></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="border: none !important; padding: 0; vertical-align: top;">
+                                <div class="top-spacer" id="printSpacerTop"></div>
+                                
+                    <%
+                        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                        let selBulanIdx = new Date().getMonth();
+                        if (startDate) {
+                           selBulanIdx = new Date(startDate).getMonth();
+                        }
+                        let namaBulan = monthNames[selBulanIdx];
+                        let selTahun = startDate ? new Date(startDate).getFullYear() : new Date().getFullYear();
+                        
+                        function formatDateIndo(dateStr) {
+                            if(!dateStr) return '';
+                            let d = new Date(dateStr);
+                            if(isNaN(d)) return dateStr;
+                            let dd = String(d.getDate()).padStart(2, '0');
+                            let mm = String(d.getMonth() + 1).padStart(2, '0');
+                            let yyyy = d.getFullYear();
+                            return `${dd}/${mm}/${yyyy}`;
+                        }
+                    %>
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0; font-size: 12pt; text-transform: uppercase;">LAPORAN KAS KEUANGAN <%= lembagaNama %></h3>
+                        <h4 style="margin: 5px 0 0 0; font-size: 11pt;" id="previewTahunJudul" contenteditable="false" spellcheck="false">TAHUN PELAJARAN <%= selTahun %>/<%= parseInt(selTahun) + 1 %></h4>
+                        <% 
+                            let periodeLabel = 'Semua Bulan';
+                            if (startDate && endDate) {
+                                let sd = new Date(startDate);
+                                let ed = new Date(endDate);
+                                if (sd.getMonth() === 0 && sd.getDate() === 1 && ed.getMonth() === 11 && ed.getDate() === 31) {
+                                    periodeLabel = 'Semua Bulan';
+                                } else {
+                                    periodeLabel = monthNames[sd.getMonth()];
+                                }
+                            }
+                        %>
+                        <p style="margin: 5px 0 0 0; font-weight: bold; font-size: 10pt;" id="previewBulanJudul" contenteditable="false" spellcheck="false">
+                            Bulan: <%= periodeLabel %>
+                        </p>
+                    </div>
+
+                    <table id="previewTable" style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 9pt;">
+                        <thead>
+                            <tr>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: center; width: 5%;">NO</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: center; width: 12%;">TANGGAL</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: center; width: 43%;">URAIAN</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: center; width: 13%;">DEBIT</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: center; width: 13%;">KREDIT</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: center; width: 14%;">SALDO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewTbody">
+                            <% 
+                            let no = 1;
+                            let runningSaldo = saldoAwal || 0;
+                            let totalDebit = runningSaldo;
+                            let totalKredit = 0;
+
+                            function formatRupiah(num) {
+                                if (!num && num !== 0) return '';
+                                return 'Rp ' + parseInt(num).toLocaleString('id-ID');
+                            }
+                            %>
+                            
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;" contenteditable="false" spellcheck="false"><%= no++ %></td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;" contenteditable="false" spellcheck="false"><%= startDate ? formatDateIndo(startDate) : '-' %></td>
+                                <td style="border: 1px solid #000; padding: 6px;" contenteditable="false" spellcheck="false">Saldo Bulan Sebelumnya</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: right;" contenteditable="false" spellcheck="false"><%= formatRupiah(saldoAwal) %></td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: right;" contenteditable="false" spellcheck="false"></td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: right;" contenteditable="false" spellcheck="false"><%= formatRupiah(saldoAwal) %></td>
+                            </tr>
+
+                            <% 
+                            if(transactions && transactions.length > 0) {
+                                transactions.forEach(item => {
+                                    let pemasukan = item.jenis === 'Pemasukan' ? Number(item.nominal) : 0;
+                                    let pengeluaran = item.jenis === 'Pengeluaran' ? Number(item.nominal) : 0;
+                                    runningSaldo += (pemasukan - pengeluaran);
+                                    totalDebit += pemasukan;
+                                    totalKredit += pengeluaran;
+
+                                    // Parse keterangan untuk diambil Uraian utamanya saja
+                                    let uraianText = item.keterangan;
+                                    if(uraianText.includes('Uraian:')) {
+                                        uraianText = uraianText.split('\n')[0].replace('Uraian:', '').trim();
+                                    }
+                            %>
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;" contenteditable="false" spellcheck="false"><%= no++ %></td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: center;" contenteditable="false" spellcheck="false"><%= formatDateIndo(item.tanggal) %></td>
+                                <td style="border: 1px solid #000; padding: 6px;" contenteditable="false" spellcheck="false"><%= uraianText %></td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: right;" contenteditable="false" spellcheck="false"><%= pemasukan ? formatRupiah(pemasukan) : '' %></td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: right;" contenteditable="false" spellcheck="false"><%= pengeluaran ? formatRupiah(pengeluaran) : '' %></td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: right;" contenteditable="false" spellcheck="false"><%= formatRupiah(runningSaldo) %></td>
+                            </tr>
+                            <%  }) 
+                            } %>
+
+                            <tr>
+                                <td colspan="3" style="border: 1px solid #000; padding: 6px; text-align: center; font-style: italic; font-weight: bold;" contenteditable="false" spellcheck="false">Total Saldo Akhir</td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: right; font-weight: bold;" contenteditable="false" spellcheck="false"><%= formatRupiah(totalDebit) %></td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: right; font-weight: bold;" contenteditable="false" spellcheck="false"><%= formatRupiah(totalKredit) %></td>
+                                <td style="border: 1px solid #000; padding: 6px; text-align: right; font-weight: bold;" contenteditable="false" spellcheck="false"><%= formatRupiah(runningSaldo) %></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="signatures-container" style="margin-top: 25px; display: flex; flex-direction: column; gap: 30px; padding: 0 10px;">
+                        
+                        <!-- ================= TANDA TANGAN MADRASAH ================= -->
+                        <div id="ttd-madrasah" class="ttd-block" style="<%= (lembagaSingkatan === 'MADRASAH' || lembagaSingkatan === 'SEMUA') ? 'display:block;' : 'display:none;' %>">
+                            <div style="display: flex; justify-content: space-between;">
+                                <div style="text-align: left; width: 250px;">
+                                    <p style="margin: 0; visibility: hidden;">&nbsp;</p>
+                                    <p style="margin: 0;">Ketua Panitia</p>
+                                    <p style="margin: 0;">SPMB Madrasah JIC</p>
+                                    <br><br><br>
+                                    <p style="margin: 0; font-weight: bold; text-decoration: underline;" contenteditable="false" spellcheck="false">Hamzah Huzaifah</p>
+                                </div>
+                                <div style="text-align: left; width: 175px;">
+                                    <p style="margin: 0 0 5px 0; white-space: nowrap;">Jakarta, <span contenteditable="false" spellcheck="false"><%= new Date().getDate() %> <%= namaBulan %> <%= selTahun %></span></p>
+                                    <p style="margin: 0; white-space: nowrap;">Bendahara</p>
+                                    <p style="margin: 0; white-space: nowrap;">SPMB Madrasah JIC</p>
+                                    <br><br><br>
+                                    <p style="margin: 0; font-weight: bold; text-decoration: underline; white-space: nowrap;" contenteditable="false" spellcheck="false">Henny Maulida Putri, S.Pd.</p>
+                                </div>
+                            </div>
+                            <div style="text-align: center; margin-top: 15px;">
+                                <p style="margin: 0 0 10px 0;">Mengetahui,</p>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <div style="text-align: left; width: 250px;">
+                                        <p style="margin: 0;">Kepala Sub Divisi Pendidikan & Pelatihan</p>
+                                        <p style="margin: 0;">Jakarta Islamic Centre</p>
+                                        <br><br><br>
+                                        <p style="margin: 0; font-weight: bold; text-decoration: underline; white-space: nowrap;" contenteditable="false" spellcheck="false">Arief Rahman Hakim, S.Sos, M.Ag.</p>
+                                    </div>
+                                    <div style="text-align: left; width: 175px;">
+                                        <p style="margin: 0; white-space: nowrap;">Kepala Madrasah</p>
+                                        <p style="margin: 0; white-space: nowrap;">Jakarta Islamic Centre</p>
+                                        <br><br><br>
+                                        <p style="margin: 0; font-weight: bold; text-decoration: underline; white-space: nowrap;" contenteditable="false" spellcheck="false">Uwesy Faroqi, S.Ag.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align: center; padding-bottom: 20px; margin-top: 15px;">
+                                <p style="margin: 0;">Menyetujui,</p>
+                                <p style="margin: 0;">Kepala Divisi Pengkajian & Pelatihan</p>
+                                <p style="margin: 0;">Jakarta Islamic Centre</p>
+                                <br><br><br>
+                                <p style="margin: 0; font-weight: bold; text-decoration: underline;" contenteditable="false" spellcheck="false">Dr. Ir. K.H. Rasyidi HY, S.H., M.M., M.A., CPA. C.Med.</p>
+                            </div>
+                        </div>
+
+                        <!-- ================= TANDA TANGAN PAUDQU ================= -->
+                        <div id="ttd-paudqu" class="ttd-block" style="<%= lembagaSingkatan === 'PAUDQU' ? 'display:block;' : 'display:none;' %>">
+                            <div style="display: flex; justify-content: space-between;">
+                                <div style="text-align: left; width: 250px;">
+                                    <p style="margin: 0; visibility: hidden;">&nbsp;</p>
+                                    <p style="margin: 0;">Kepala PAUDQu</p>
+                                    <p style="margin: 0;">Jakarta Islamic Centre</p>
+                                    <br><br><br>
+                                    <p style="margin: 0; font-weight: bold; text-decoration: underline;" contenteditable="false" spellcheck="false">Uwesy Faroqi, S.Ag.</p>
+                                </div>
+                                <div style="text-align: left; width: 175px;">
+                                    <p style="margin: 0 0 5px 0; white-space: nowrap;">Jakarta, <span contenteditable="false" spellcheck="false"><%= new Date().getDate() %> <%= namaBulan %> <%= selTahun %></span></p>
+                                    <p style="margin: 0; white-space: nowrap;">Bendahara</p>
+                                    <p style="margin: 0; white-space: nowrap;">PAUDQu JIC</p>
+                                    <br><br><br>
+                                    <p style="margin: 0; font-weight: bold; text-decoration: underline; white-space: nowrap;" contenteditable="false" spellcheck="false">Dian Puput Tiara, S.Pd.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ================= TANDA TANGAN TPQ/MDT ================= -->
+                        <div id="ttd-tpq" class="ttd-block" style="<%= (lembagaSingkatan === 'TPQ' || lembagaSingkatan === 'MDT') ? 'display:block;' : 'display:none;' %>">
+                            <div style="display: flex; justify-content: space-between;">
+                                <div style="text-align: left; width: 250px;">
+                                    <p style="margin: 0; visibility: hidden;">&nbsp;</p>
+                                    <p style="margin: 0;">Kepala Madrasah</p>
+                                    <p style="margin: 0;">Jakarta Islamic Centre</p>
+                                    <br><br><br>
+                                    <p style="margin: 0; font-weight: bold; text-decoration: underline;" contenteditable="false" spellcheck="false">Uwesy Faroqi, S.Ag.</p>
+                                </div>
+                                <div style="text-align: left; width: 175px;">
+                                    <p style="margin: 0 0 5px 0; white-space: nowrap;">Jakarta, <span contenteditable="false" spellcheck="false"><%= new Date().getDate() %> <%= namaBulan %> <%= selTahun %></span></p>
+                                    <p style="margin: 0; white-space: nowrap;">Bendahara</p>
+                                    <p style="margin: 0; white-space: nowrap;">TPQ / MDT JIC</p>
+                                    <br><br><br>
+                                    <p style="margin: 0; font-weight: bold; text-decoration: underline; white-space: nowrap;" contenteditable="false" spellcheck="false">Henny Maulida Putri, S.Pd.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                            </td></tr>
+                        </tbody>
+                        <tfoot class="print-only-layout">
+                            <tr><td style="height: 2cm; border: none !important; padding: 0;"></td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/laporan-cetak.js?v=2"></script>
+    <script>
+        function changeTTD(val) {
+            document.querySelectorAll('.ttd-block').forEach(el => el.style.display = 'none');
+            const target = document.getElementById('ttd-' + val);
+            if (target) target.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

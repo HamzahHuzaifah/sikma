@@ -1,0 +1,77 @@
+<%- include('partials/header') %>
+<%- include('partials/sidebar') %>
+
+<!-- Dashboard Header -->
+<div class="border-b border-slate-100 pb-5 mb-6">
+  <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Dashboard Keuangan Madrasah</h1>
+  <p class="text-sm text-slate-400 font-medium mt-1">Ringkasan kas masuk, kas keluar, dan saldo kas dari seluruh lembaga.</p>
+</div>
+
+<!-- Widget Keuangan Utama (Menggunakan Component & Props EJS) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  <%- include('components/card', { 
+    title: 'Total Pemasukan', 
+    amount: totalPemasukanAll, 
+    bgColor: 'bg-gradient-success',
+    icon: 'bi-arrow-down-left-square-fill'
+  }) %>
+  
+  <%- include('components/card', { 
+    title: 'Total Pengeluaran', 
+    amount: totalPengeluaranAll, 
+    bgColor: 'bg-gradient-danger',
+    icon: 'bi-arrow-up-right-square-fill'
+  }) %>
+  
+  <%- include('components/card', { 
+    title: 'Saldo Kas', 
+    amount: totalSaldoAll, 
+    bgColor: 'bg-gradient-primary',
+    icon: 'bi-wallet-fill'
+  }) %>
+</div>
+
+<!-- Tabel Rekapitulasi per Lembaga -->
+<div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+  <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+    <i class="bi bi-grid-fill text-indigo-500 text-lg"></i>
+    <h3 class="font-bold text-slate-700">Rekapitulasi Kas Per Lembaga</h3>
+  </div>
+  
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <th class="p-4 pl-6">Nama Lembaga</th>
+          <th class="p-4 text-right">Total Pemasukan</th>
+          <th class="p-4 text-right">Total Pengeluaran</th>
+          <th class="p-4 text-right">Saldo Akhir</th>
+          <th class="p-4 text-center">Aksi</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+        <% rekap.forEach(lem => { %>
+          <tr class="hover:bg-slate-50/70 transition duration-150">
+            <td class="p-4 pl-6 font-semibold text-slate-800"><%= lem.nama %></td>
+            <td class="p-4 text-right text-emerald-600 font-semibold">
+              <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(lem.pemasukan) %>
+            </td>
+            <td class="p-4 text-right text-rose-600 font-semibold">
+              <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(lem.pengeluaran) %>
+            </td>
+            <td class="p-4 text-right font-bold <%= lem.saldo >= 0 ? 'text-indigo-600' : 'text-rose-600' %>">
+              <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(lem.saldo) %>
+            </td>
+            <td class="p-4 text-center">
+              <a href="/laporan?lembagaId=<%= lem.id %>" class="inline-flex items-center gap-1.5 px-4 py-1.5 border border-slate-200 rounded-full text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition">
+                <i class="bi bi-eye"></i> Detail
+              </a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

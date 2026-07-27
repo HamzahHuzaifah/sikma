@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Kwitansi Pembayaran - TRX-<%= transaction.id %></title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <!-- Menggunakan kwitansi.css dari SPMB -->
+    <link rel="stylesheet" href="/css/kwitansi.css?v=6">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+
+    <div class="no-print action-buttons">
+        <button onclick="window.print()" class="btn-print" id="btnPrint">
+            <i class="fas fa-print"></i> Cetak Kwitansi
+        </button>
+        <button type="button" onclick="toggleEdit()" class="btn-print" id="btnEdit" style="background-color: #f59e0b; margin-left: 10px;">
+            <i class="fas fa-edit"></i> Edit Data
+        </button>
+        <a href="/lembaga/<%= slug %>/laporan" class="btn-back">Kembali ke Laporan</a>
+        
+        <div id="layoutControls" class="no-print" style="display: none; margin-top: 15px; padding: 10px; background: white; border-radius: 6px; border: 1px solid #ccc; width: 100%; flex-direction: column; align-items: center; gap: 10px;">
+            <strong style="text-align: center; margin-bottom: 5px;">Geser Tata Letak:</strong>
+            <button type="button" onclick="moveLayout(0, -10)" style="padding: 5px 10px; cursor: pointer; width: 100%;"><i class="fas fa-arrow-up"></i> Naik</button>
+            <button type="button" onclick="moveLayout(0, 10)" style="padding: 5px 10px; cursor: pointer; width: 100%;"><i class="fas fa-arrow-down"></i> Turun</button>
+            <button type="button" onclick="moveLayout(-10, 0)" style="padding: 5px 10px; cursor: pointer; width: 100%;"><i class="fas fa-arrow-left"></i> Kiri</button>
+            <button type="button" onclick="moveLayout(10, 0)" style="padding: 5px 10px; cursor: pointer; width: 100%;"><i class="fas fa-arrow-right"></i> Kanan</button>
+        </div>
+    </div>
+
+    <% 
+        const is_pengeluaran = transaction.jenis === 'Pengeluaran';
+        const is_pembayaran = transaction.tagihanId != null;
+        
+        let uraian_pembayaran = transaction.keterangan ? transaction.keterangan.split('\nMetode:')[0].trim() : '';
+        
+        let layoutMarginTop = transaction.layoutMarginTop || '6.5cm';
+        let layoutMarginLeft = transaction.layoutMarginLeft || '2.5cm';
+        let ttdVisible = transaction.ttdVisible !== false;
+        let ttdWidth = transaction.ttdWidth || '120px';
+        let ttdX = transaction.ttdX || 0;
+        let ttdY = transaction.ttdY || 0;
+        
+        let rowOrder = transaction.rowOrder;
+        const defaultOrder = ['diterimaDari', 'namaSantri', 'satuanPendidikan', 'untukPembayaran', 'dibayarkanKepada', 'kategoriDana', 'keteranganPengeluaran', 'terbilangRow', 'nominalRow'];
+        let currentOrder = [];
+        try {
+            if (rowOrder) currentOrder = JSON.parse(rowOrder);
+        } catch(e) {}
+        if (!Array.isArray(currentOrder) || currentOrder.length === 0) currentOrder = defaultOrder;
+        const getOrder = (id) => {
+            let idx = currentOrder.indexOf(id);
+            return idx !== -1 ? idx : defaultOrder.indexOf(id);
+        };
+
+        const tanggal_cetak = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        const nominal_format = parseInt(transaction.nominal).toLocaleString('id-ID');
+        
+        let ttd_img = "/images/TTD Bendahara Henny.webp";
+        let ttd_name = "Henny Maulida Putri, S.Pd.";
+        let lembaga_name = transaction.lembaga ? transaction.lembaga.nama.toUpperCase() : '';
+        let is_madrasah = false;
+        
+        if (lembaga_name.includes('PAUDQU')) {
+            ttd_img = "/images/TTD Bendahara Puput.webp";
+            ttd_name = "Dian Puput Tiara, S.Pd.";
+        } else if (lembaga_name.includes('MADRASAH') || lembaga_name.includes('JAMI')) {
+            is_madrasah = true;
+            // Default untuk Madrasah
+            ttd_img = "/images/TTD Bendahara Puput.webp";
+            ttd_name = "Dian Puput Tiara, S.Pd.";
+        }
+    %>
+
+    <div class="page-wrapper" style="background-image: url('/images/Template%20Laporan%20dan%20Kwintasi%20<%= transaction.lembaga.nama %>.webp'), url('/images/Template%20Laporan%20dan%20Kwintasi.webp');">
+        <div class="content-overlay" id="contentOverlay" style="padding-top: <%= layoutMarginTop %>; padding-left: <%= layoutMarginLeft %>; padding-right: <%= layoutMarginLeft %>;">
+            <div class="kwitansi-title-wrapper">
+                <h2 class="doc-title">
+                    <span class="editable-field" data-field="docTitle"><%= transaction.docTitle || (is_pengeluaran ? 'BUKTI PENGELUARAN KEUANGAN' : (is_pembayaran ? 'KWITANSI PEMBAYARAN' : 'BUKTI TANDA TERIMA')) %></span>
+                </h2>
+                <p class="doc-number">No: <%= transaction.nomor_kwitansi || ('TRX-' + transaction.id) %></p>
+            </div>
+
+            <table class="content-table" style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                <tbody id="kwitansiTbody" style="display: flex; flex-direction: column; width: 100%;">
+                
+                <% if (is_pengeluaran) { %>
+                    <tr data-row-id="dibayarkanKepada" style="display: flex; width: 100%; order: <%= getOrder('dibayarkanKepada') %>;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td class="label" style="width: 200px;">Dibayarkan Kepada</td>
+                        <td class="colon" style="width: 20px;">:</td>
+                        <td class="value" style="flex: 1;"><span class="value-highlight editable-field" data-field="dibayarkanKepadaSign"><%= transaction.dibayarkanKepadaSign || '.................................................................................' %></span></td>
+                    </tr>
+                    <tr data-row-id="kategoriDana" style="display: flex; width: 100%; order: <%= getOrder('kategoriDana') %>;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td class="label" style="width: 200px;">Kategori Dana</td>
+                        <td class="colon" style="width: 20px;">:</td>
+                        <td class="value" style="flex: 1;"><span class="value-highlight"><%= transaction.kategori ? transaction.kategori.nama : '-' %></span></td>
+                    </tr>
+                    <tr data-row-id="keteranganPengeluaran" style="display: flex; width: 100%; order: <%= getOrder('keteranganPengeluaran') %>;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td class="label" style="width: 200px;">Keterangan Pengeluaran</td>
+                        <td class="colon" style="width: 20px;">:</td>
+                        <td class="value" style="flex: 1;"><span class="editable-field" data-field="uraian_pembayaran"><%= uraian_pembayaran %></span></td>
+                    </tr>
+                <% } else if (is_pembayaran) { %>
+                    <tr data-row-id="diterimaDari" style="display: flex; width: 100%; order: <%= getOrder('diterimaDari') %>;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td class="label" style="width: 200px;">Telah Diterima Dari</td>
+                        <td class="colon" style="width: 20px;">:</td>
+                        <td class="value" style="flex: 1;">
+                            <span class="editable-field" data-field="diterimaDariPembayaran"><%= transaction.diterimaDariPembayaran || 'Orang Tua / Wali Santri' %></span>
+                        </td>
+                    </tr>
+                    <tr data-row-id="namaSantri" style="display: flex; width: 100%; order: <%= getOrder('namaSantri') %>;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td class="label" style="width: 200px;">Nama Santri</td>
+                        <td class="colon" style="width: 20px;">:</td>
+                        <td class="value" style="flex: 1;"><span class="value-highlight">
+                                <%= transaction.santri ? transaction.santri.nama : '-' %>
+                            </span></td>
+                    </tr>
+                    <tr data-row-id="satuanPendidikan" style="display: flex; width: 100%; order: <%= getOrder('satuanPendidikan') %>;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td class="label" style="width: 200px;">Satuan Pendidikan</td>
+                        <td class="colon" style="width: 20px;">:</td>
+                        <td class="value" style="flex: 1;">
+                            <%= transaction.lembaga.nama %> <%= transaction.kelas ? transaction.kelas.nama : '' %>
+                        </td>
+                    </tr>
+                    <tr data-row-id="untukPembayaran" style="display: flex; width: 100%; order: <%= getOrder('untukPembayaran') %>;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td class="label" style="width: 200px;">Untuk Pembayaran</td>
+                        <td class="colon" style="width: 20px;">:</td>
+                        <td class="value" style="flex: 1;"><span class="editable-field" data-field="uraian_pembayaran"><%= uraian_pembayaran %></span></td>
+                    </tr>
+                <% } else { %>
+                    <tr data-row-id="diterimaDari" style="display: flex; width: 100%; order: <%= getOrder('diterimaDari') %>;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td class="label" style="width: 200px;">Telah Diterima Dari</td>
+                        <td class="colon" style="width: 20px;">:</td>
+                        <td class="value" style="flex: 1;">
+                            <span class="value-highlight editable-field" data-field="diterimaDariPembayaran"><%= transaction.diterimaDariPembayaran || '.................................................................................' %></span>
+                        </td>
+                    </tr>
+                    <tr data-row-id="untukBantuan" style="display: flex; width: 100%; order: <%= getOrder('untukBantuan') %>;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td class="label" style="width: 200px;">Uraian</td>
+                        <td class="colon" style="width: 20px;">:</td>
+                        <td class="value" style="flex: 1;"><span class="editable-field" data-field="uraian_pembayaran"><%= uraian_pembayaran %></span></td>
+                    </tr>
+                <% } %>
+                    <tr data-row-id="terbilangRow" style="display: flex; width: 100%; order: <%= getOrder('terbilangRow') %>; margin-bottom: 0px;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td style="width: 100%;">
+                            <div class="terbilang-container" style="margin-bottom: 0;">
+                                <div class="terbilang-value">Terbilang: <%= nominalTerbilang %></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr data-row-id="nominalRow" style="display: flex; width: 100%; order: <%= getOrder('nominalRow') %>; align-items: center; margin-top: 0px; margin-bottom: 15px;">
+                        <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
+                            <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
+                        </td>
+                        <td style="width: 100%;">
+                            <div class="amount-box">
+                                Rp <%= nominal_format %>,-
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="footer-table" style="margin-top: 20px;">
+                <tr>
+                    <td style="width: 50%; text-align: center; vertical-align: bottom;">
+                        <p style="margin-bottom: 80px;"><%= is_pengeluaran ? 'Penerima / Dibayarkan Kepada,' : 'Pemberi Dana,' %></p>
+                        <p class="signature-name" style="text-decoration: none;">( <span class="editable-field" data-field="namaPemberi"><%= transaction.namaPemberi || (is_pengeluaran ? (transaction.dibayarkanKepadaSign || '...................................') : '...................................') %></span> )</p>
+                    </td>
+                    <td style="width: 50%; text-align: center; vertical-align: bottom;">
+                        <div class="date-text" style="margin-bottom: 10px;">Jakarta, <%= tanggal_cetak %></div>
+                        <div class="ttd-container" style="position: relative; text-align: center; height: 50px;">
+                            <img src="<%= ttd_img %>" class="ttd-image" id="ttdImage" alt="TTD Bendahara" style="width: <%= ttdWidth %>; display: <%= ttdVisible ? 'inline-block' : 'none' %>; position: absolute; left: 50%; top: 50%; transform: translate(calc(-50% + <%= ttdX %>px), calc(-50% + <%= ttdY %>px)); z-index: 1;">
+                            <div class="ttd-controls no-print" style="display: none; position: absolute; top: -30px; left: 50%; transform: translateX(-50%); z-index: 2; background: rgba(255,255,255,0.9); padding: 5px; border-radius: 5px; border: 1px solid #ccc; white-space: nowrap;">
+                                <button type="button" onclick="deleteTtd(this)" style="background: red; color: white; border: none; padding: 5px; cursor: pointer; border-radius: 3px; margin: 0 2px;"><i class="fas fa-trash"></i></button>
+                                <button type="button" onclick="resizeTtd(this, 10)" style="background: blue; color: white; border: none; padding: 5px; cursor: pointer; border-radius: 3px; margin: 0 2px;"><i class="fas fa-search-plus"></i></button>
+                                <button type="button" onclick="resizeTtd(this, -10)" style="background: blue; color: white; border: none; padding: 5px; cursor: pointer; border-radius: 3px; margin: 0 2px;"><i class="fas fa-search-minus"></i></button>
+                                <button type="button" onclick="moveTtd(this, 0, -5)" style="background: #059669; color: white; border: none; padding: 5px; cursor: pointer; border-radius: 3px; margin: 0 2px;"><i class="fas fa-arrow-up"></i></button>
+                                <button type="button" onclick="moveTtd(this, 0, 5)" style="background: #059669; color: white; border: none; padding: 5px; cursor: pointer; border-radius: 3px; margin: 0 2px;"><i class="fas fa-arrow-down"></i></button>
+                                <button type="button" onclick="moveTtd(this, -5, 0)" style="background: #059669; color: white; border: none; padding: 5px; cursor: pointer; border-radius: 3px; margin: 0 2px;"><i class="fas fa-arrow-left"></i></button>
+                                <button type="button" onclick="moveTtd(this, 5, 0)" style="background: #059669; color: white; border: none; padding: 5px; cursor: pointer; border-radius: 3px; margin: 0 2px;"><i class="fas fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+                        <% if (is_madrasah) { %>
+                            <div class="no-print" style="margin-bottom: 5px;">
+                                <select id="bendaharaSelect" onchange="changeBendahara()" style="font-size: 11px; padding: 2px 4px; border: 1px solid #ccc; border-radius: 4px; background: #fff;">
+                                    <option value="puput">Dian Puput Tiara, S.Pd.</option>
+                                    <option value="henny">Henny Maulida Putri, S.Pd.</option>
+                                </select>
+                            </div>
+                        <% } %>
+                        <p class="signature-name" id="ttdName" style="position: relative; z-index: 2;"><%= ttd_name %></p>
+                        <p class="signature-role">Bendahara <%= transaction.lembaga.nama %></p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        window.KwitansiConfig = {
+            saveUrl: '/lembaga/<%= slug %>/kwitansi-edit/<%= transaction.id %>',
+            marginTop: parseFloat('<%= layoutMarginTop.replace("cm","") %>') || 6.5,
+            marginLeft: parseFloat('<%= layoutMarginLeft.replace("cm","") %>') || 2.5,
+            ttdVisible: <%= ttdVisible %>,
+            ttdWidth: parseInt('<%= ttdWidth.replace("px","") %>') || 120,
+            ttdX: parseInt('<%= ttdX %>') || 0,
+            ttdY: parseInt('<%= ttdY %>') || 0
+        };
+
+        function changeBendahara() {
+            var select = document.getElementById('bendaharaSelect');
+            if (!select) return;
+            var ttdImage = document.getElementById('ttdImage');
+            var ttdName = document.getElementById('ttdName');
+            
+            if (select.value === 'puput') {
+                ttdImage.src = "/images/TTD Bendahara Puput.webp";
+                ttdName.innerText = "Dian Puput Tiara, S.Pd.";
+            } else if (select.value === 'henny') {
+                ttdImage.src = "/images/TTD Bendahara Henny.webp";
+                ttdName.innerText = "Henny Maulida Putri, S.Pd.";
+            }
+        }
+    </script>
+    <script src="/js/kwitansi_editor.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<%- include('partials/header') %>
+<%- include('partials/sidebar') %>
+
+<div class="w-full">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800">Kelola Pengguna</h1>
+      <p class="text-sm text-slate-500 mt-1">Daftar akun admin dan staf SIKMA</p>
+    </div>
+    <a href="/users/create" class="inline-flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-sm transition-all focus:ring-4 focus:ring-brand-500/20 active:scale-95">
+      <i class="bi bi-person-plus text-lg"></i> Tambah Akun
+    </a>
+  </div>
+
+  <% if (success) { %>
+    <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-start gap-3 shadow-sm animate-fade-in">
+      <i class="bi bi-check-circle-fill mt-0.5 text-emerald-500"></i>
+      <div>
+        <span class="block sm:inline font-medium"><%= success %></span>
+      </div>
+    </div>
+  <% } %>
+  <% if (error) { %>
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-3 shadow-sm animate-fade-in">
+      <i class="bi bi-exclamation-triangle-fill mt-0.5 text-red-500"></i>
+      <div>
+        <span class="block sm:inline font-medium"><%= error %></span>
+      </div>
+    </div>
+  <% } %>
+
+  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-200 text-sm">
+            <th class="p-4 font-semibold text-slate-700">Nama Lengkap</th>
+            <th class="p-4 font-semibold text-slate-700">Username</th>
+            <th class="p-4 font-semibold text-slate-700">Role</th>
+            <th class="p-4 font-semibold text-slate-700 text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-sm">
+          <% if (users && users.length > 0) { %>
+            <% users.forEach(user => { %>
+              <tr class="hover:bg-slate-50/50 transition">
+                <td class="p-4 align-middle">
+                  <div class="font-semibold text-slate-800"><%= user.nama_lengkap %></div>
+                </td>
+                <td class="p-4 align-middle text-slate-600"><%= user.username %></td>
+                <td class="p-4 align-middle">
+                  <% if(user.role === 'Admin') { %>
+                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-full text-xs font-semibold">Admin</span>
+                  <% } else { %>
+                    <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-xs font-semibold">Staf</span>
+                  <% } %>
+                </td>
+                <td class="p-4 align-middle text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <a href="/users/edit/<%= user.id %>" class="text-brand-600 hover:text-brand-800 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-lg transition" title="Edit">
+                      <i class="bi bi-pencil-square"></i> Edit
+                    </a>
+                    <% if (locals.user && locals.user.id !== user.id) { %>
+                    <form action="/users/delete/<%= user.id %>" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun ini?');">
+                      <button type="submit" class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition" title="Hapus">
+                        <i class="bi bi-trash"></i> Hapus
+                      </button>
+                    </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="4" class="p-8 text-center text-slate-500">
+                <i class="bi bi-inbox text-3xl mb-2 block opacity-50"></i>
+                Belum ada data pengguna
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

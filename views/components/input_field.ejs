@@ -1,0 +1,36 @@
+<%
+  const id = locals.id || '';
+  const label = locals.label || '';
+  const name = locals.name || '';
+  const type = locals.type || 'text';
+  const value = locals.value !== undefined ? locals.value : '';
+  const placeholder = locals.placeholder || '';
+  const required = locals.required ? 'required' : '';
+  const disabled = locals.disabled ? 'disabled' : '';
+  const onChange = locals.onChange ? `onchange="${locals.onChange}"` : '';
+  const step = locals.step !== undefined ? `step="${locals.step}"` : '';
+  const min = locals.min !== undefined ? `min="${locals.min}"` : '';
+  const max = locals.max !== undefined ? `max="${locals.max}"` : '';
+  const readonly = locals.readonly ? 'readonly' : '';
+  const customClass = locals.customClass || '';
+%>
+<div class="mb-4">
+  <label for="<%= id %>" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+    <%= label %> <%= locals.required ? '*' : '' %>
+  </label>
+  <input 
+    type="<%= type %>" 
+    id="<%= id %>" 
+    name="<%= name %>" 
+    value="<%= value %>"
+    placeholder="<%= placeholder %>"
+    <%= required %>
+    <%= disabled %>
+    <%= readonly %>
+    <%= onChange %>
+    <%= step %>
+    <%= min %>
+    <%= max %>
+    class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed <%= customClass %>"
+  >
+</div>

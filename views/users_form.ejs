@@ -1,0 +1,70 @@
+<%- include('partials/header') %>
+<%- include('partials/sidebar') %>
+
+<div class="w-full max-w-2xl mx-auto">
+  <div class="mb-6 flex items-center gap-4">
+    <a href="/users" class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800"><%= user ? 'Edit Akun Pengguna' : 'Tambah Akun Pengguna' %></h1>
+      <p class="text-sm text-slate-500 mt-1"><%= user ? 'Perbarui informasi akun' : 'Buat akun baru untuk admin atau staf' %></p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+    <form action="<%= user ? '/users/edit/' + user.id : '/users/create' %>" method="POST" class="p-6 md:p-8 space-y-6">
+      
+      <%- include('components/input_field', {
+        id: 'nama_lengkap',
+        label: 'Nama Lengkap',
+        name: 'nama_lengkap',
+        value: user ? user.nama_lengkap : '',
+        placeholder: 'Contoh: Budi Santoso',
+        required: true
+      }) %>
+
+      <%- include('components/input_field', {
+        id: 'username',
+        label: 'Username',
+        name: 'username',
+        value: user ? user.username : '',
+        placeholder: 'Contoh: budi123',
+        required: true
+      }) %>
+
+      <% 
+        const roleOptionsHTML = `
+          <option value="Admin" ${user && user.role === 'Admin' ? 'selected' : ''}>Admin (Akses Penuh)</option>
+          <option value="Staf" ${(!user || (user && user.role === 'Staf')) ? 'selected' : ''}>Staf (Akses Input & Laporan)</option>
+        `;
+      %>
+      <%- include('components/select_field', {
+        id: 'role',
+        label: 'Role',
+        name: 'role',
+        required: true,
+        optionsHTML: roleOptionsHTML
+      }) %>
+
+      <hr class="border-slate-100">
+
+      <%- include('components/input_field', {
+        id: 'password',
+        label: `Password ${user ? '(Isi hanya jika ingin mengganti)' : ''}`,
+        name: 'password',
+        type: 'password',
+        placeholder: user ? 'Biarkan kosong jika tidak diubah' : 'Minimal 6 karakter',
+        required: user ? false : true
+      }) %>
+
+      <%- include('components/form_actions', {
+        backUrl: '/users',
+        submitText: '<i class="bi bi-save mr-1"></i> Simpan'
+      }) %>
+      
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

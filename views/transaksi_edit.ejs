@@ -1,0 +1,320 @@
+<%- include('partials/header') %>
+<%- include('partials/sidebar') %>
+
+<!-- Form Header -->
+<div class="border-b border-slate-100 pb-5 mb-6">
+  <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Edit Transaksi Keuangan</h1>
+  <p class="text-sm text-slate-400 font-medium mt-1">Ubah catatan data transaksi keuangan di bawah naungan madrasah.</p>
+</div>
+
+<div class="max-w-3xl mx-auto">
+  <!-- Main Card -->
+  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 md:p-8">
+    <h2 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+      <i class="bi bi-pencil-square text-indigo-500"></i> Form Edit Transaksi
+    </h2>
+
+    <form action="/transaksi/edit/<%= transaction.id %>" method="POST" class="space-y-6">
+      <!-- Hidden redirectUrl field to return back to referer -->
+      <input type="hidden" name="redirectUrl" value="<%= queryParams && queryParams.redirectUrl ? queryParams.redirectUrl : '/laporan' %>">
+
+      <!-- Tanggal Transaksi & Lembaga -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="tanggal" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tanggal Transaksi *</label>
+          <input 
+            type="date" 
+            id="tanggal" 
+            name="tanggal" 
+            required 
+            value="<%= transaction.tanggal %>" 
+            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+          >
+        </div>
+
+        <div>
+          <label for="lembagaId_global" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Satuan Pendidikan / Lembaga *</label>
+          <% if (transaction.tagihanId) { %>
+            <!-- Lock lembaga for student payment because it depends on the student -->
+            <input type="hidden" name="lembagaId_global" value="<%= transaction.lembagaId %>">
+            <input 
+              type="text" 
+              disabled 
+              value="<%= transaction.lembaga.nama %>" 
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-slate-50 text-slate-400 font-medium cursor-not-allowed outline-none shadow-sm"
+            >
+          <% } else { %>
+            <select 
+              id="lembagaId_global" 
+              name="lembagaId_global" 
+              required 
+              class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150 cursor-pointer"
+            >
+              <% lembagas.forEach(l => { %>
+                <option value="<%= l.id %>" <%= transaction.lembagaId == l.id ? 'selected' : '' %>><%= l.nama %></option>
+              <% }) %>
+            </select>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- ==================== SECTION 1: PEMBAYARAN TAGIHAN SANTRI ==================== -->
+      <% if (transaction.tagihanId) { %>
+        <div class="bg-slate-50/50 border border-slate-100 rounded-xl p-5 md:p-6 space-y-6">
+          <h3 class="text-sm font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200/60 pb-3">
+            <i class="bi bi-person-fill"></i> Detail Pembayaran Tagihan Santri
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Kelas -->
+            <div>
+              <label for="kelasId" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Kelas *</label>
+              <select 
+                id="kelasId" 
+                name="kelasId" 
+                required 
+                class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150 cursor-pointer"
+                onchange="handleKelasChange(this.value)"
+              >
+                <% kelasList.forEach(k => { %>
+                  <option value="<%= k.id %>" <%= transaction.kelasId == k.id ? 'selected' : '' %>><%= k.nama %></option>
+                <% }) %>
+              </select>
+            </div>
+
+            <!-- Santri -->
+            <div>
+              <label for="santriId" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nama Santri *</label>
+              <select 
+                id="santriId" 
+                name="santriId" 
+                required 
+                class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150 cursor-pointer"
+              >
+                <% santriList.forEach(s => { %>
+                  <option value="<%= s.id %>" <%= transaction.santriId == s.id ? 'selected' : '' %>><%= s.nama %></option>
+                <% }) %>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Tagihan -->
+            <div>
+              <label for="tagihanId" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tagihan *</label>
+              <select 
+                id="tagihanId" 
+                name="tagihanId" 
+                required 
+                class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150 cursor-pointer"
+              >
+                <% tagihans.forEach(t => { %>
+                  <option value="<%= t.id %>" <%= transaction.tagihanId == t.id ? 'selected' : '' %>><%= t.nama %> (Rp <%= Number(t.nominal).toLocaleString('id-ID') %>)</option>
+                <% }) %>
+              </select>
+            </div>
+
+            <!-- Metode -->
+            <div>
+              <label for="metode_tagihan" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Metode Pembayaran *</label>
+              <select 
+                id="metode_tagihan" 
+                name="metode_tagihan"
+                required
+                class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150 cursor-pointer"
+              >
+                <option value="Cash" <%= parsed.metode === 'Cash' ? 'selected' : '' %>>Cash</option>
+                <option value="Transfer" <%= parsed.metode === 'Transfer' ? 'selected' : '' %>>Transfer</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Catatan -->
+          <div>
+            <label for="catatan_tagihan" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Catatan Tambahan (Opsional)</label>
+            <textarea 
+              id="catatan_tagihan" 
+              name="catatan_tagihan" 
+              rows="3"
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+              placeholder="Catatan..."
+            ><%= parsed.catatan %></textarea>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- ==================== SECTION 2: PEMASUKAN LAIN ==================== -->
+      <% if (transaction.jenis === 'Pemasukan' && !transaction.tagihanId) { %>
+        <div class="bg-slate-50/50 border border-slate-100 rounded-xl p-5 md:p-6 space-y-6">
+          <h3 class="text-sm font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200/60 pb-3">
+            <i class="bi bi-wallet2"></i> Detail Pemasukan Umum (Lainnya)
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Uraian -->
+            <div>
+              <label for="uraianPemasukan" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Uraian Pemasukan *</label>
+              <input 
+                type="text" 
+                id="uraianPemasukan" 
+                name="uraianPemasukan" 
+                required 
+                value="<%= parsed.uraian %>" 
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+              >
+            </div>
+
+            <!-- Diterima Dari -->
+            <div>
+              <label for="diterimaDari" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Diterima Dari *</label>
+              <select 
+                id="diterimaDari" 
+                name="diterimaDari" 
+                required 
+                class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150 cursor-pointer"
+              >
+                <option value="Siswa / Wali Murid" <%= parsed.diterimaDari === 'Siswa / Wali Murid' ? 'selected' : '' %>>Siswa / Wali Murid</option>
+                <option value="Instansi / Yayasan" <%= parsed.diterimaDari === 'Instansi / Yayasan' ? 'selected' : '' %>>Instansi / Yayasan</option>
+                <option value="Lainnya" <%= parsed.diterimaDari === 'Lainnya' ? 'selected' : '' %>>Lainnya</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Pemberi -->
+            <div>
+              <label for="pemberi" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nama Pemberi *</label>
+              <input 
+                type="text" 
+                id="pemberi" 
+                name="pemberi" 
+                required 
+                value="<%= parsed.pemberi %>" 
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+              >
+            </div>
+
+            <!-- Metode -->
+            <div>
+              <label for="metode_pemasukan" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Metode Penerimaan *</label>
+              <select 
+                id="metode_pemasukan" 
+                name="metode_pemasukan"
+                required
+                class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150 cursor-pointer"
+              >
+                <option value="Cash" <%= parsed.metode === 'Cash' ? 'selected' : '' %>>Cash</option>
+                <option value="Transfer" <%= parsed.metode === 'Transfer' ? 'selected' : '' %>>Transfer</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Catatan -->
+          <div>
+            <label for="catatan_pemasukan" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Catatan Tambahan (Opsional)</label>
+            <textarea 
+              id="catatan_pemasukan" 
+              name="catatan_pemasukan" 
+              rows="3"
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+              placeholder="Catatan..."
+            ><%= parsed.catatan %></textarea>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- ==================== SECTION 3: PENGELUARAN ==================== -->
+      <% if (transaction.jenis === 'Pengeluaran') { %>
+        <div class="bg-slate-50/50 border border-slate-100 rounded-xl p-5 md:p-6 space-y-6">
+          <h3 class="text-sm font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200/60 pb-3">
+            <i class="bi bi-cart-x"></i> Detail Pengeluaran Keuangan
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Uraian -->
+            <div>
+              <label for="uraianPengeluaran" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Uraian Pengeluaran *</label>
+              <input 
+                type="text" 
+                id="uraianPengeluaran" 
+                name="uraianPengeluaran" 
+                required 
+                value="<%= parsed.uraian %>" 
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+              >
+            </div>
+
+            <!-- Dibayarkan Kepada -->
+            <div>
+              <label for="dibayarkanKepada" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Dibayarkan Kepada *</label>
+              <input 
+                type="text" 
+                id="dibayarkanKepada" 
+                name="dibayarkanKepada" 
+                required 
+                value="<%= parsed.dibayarkanKepada %>" 
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+              >
+            </div>
+          </div>
+
+          <!-- Metode -->
+          <div>
+            <label for="metode_pengeluaran" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Metode Pembayaran *</label>
+            <select 
+              id="metode_pengeluaran" 
+              name="metode_pengeluaran"
+              required
+              class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150 cursor-pointer"
+            >
+              <option value="Cash" <%= parsed.metode === 'Cash' ? 'selected' : '' %>>Cash</option>
+              <option value="Transfer" <%= parsed.metode === 'Transfer' ? 'selected' : '' %>>Transfer</option>
+            </select>
+          </div>
+
+          <!-- Catatan -->
+          <div>
+            <label for="catatan_pengeluaran" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Catatan Tambahan (Opsional)</label>
+            <textarea 
+              id="catatan_pengeluaran" 
+              name="catatan_pengeluaran" 
+              rows="3"
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+              placeholder="Catatan..."
+            ><%= parsed.catatan %></textarea>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Nominal -->
+      <div>
+        <label for="nominal" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nominal Uang (Rp) *</label>
+        <input 
+          type="number" 
+          id="nominal" 
+          name="nominal" 
+          required 
+          value="<%= Math.floor(transaction.nominal) %>" 
+          class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+        >
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-6 mt-6">
+        <a href="<%= queryParams && queryParams.redirectUrl ? queryParams.redirectUrl : '/laporan' %>" class="px-5 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition duration-150 text-center">
+          Batal
+        </a>
+        <button type="submit" class="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm hover:shadow transition duration-150 text-center">
+          Simpan Transaksi
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<% if (transaction.tagihanId) { %>
+<script src="/js/transaksi-edit.js"></script>
+<% } %>
+
+<%- include('partials/footer') %>

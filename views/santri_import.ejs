@@ -1,0 +1,203 @@
+<%- include('partials/header') %>
+<%- include('partials/sidebar') %>
+
+<!-- Header -->
+<div class="border-b border-slate-100 pb-5 mb-6">
+  <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Kelola & Import Data Santri</h1>
+  <p class="text-sm text-slate-400 font-medium mt-1">Impor data santri dari sistem SPMB (Sistem Penerimaan Murid Baru) atau unggah file Excel/CSV.</p>
+</div>
+
+<!-- Alert status -->
+<div class="mb-6 space-y-4">
+  <% if (success) { %>
+    <div class="bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm rounded-xl p-4 flex items-center justify-between font-semibold">
+      <div class="flex items-center gap-2">
+        <i class="bi bi-check-circle-fill text-lg"></i>
+        <span><%= success %></span>
+      </div>
+      <button onclick="this.parentElement.remove()" class="text-emerald-400 hover:text-emerald-600"><i class="bi bi-x-lg text-xs"></i></button>
+    </div>
+  <% } %>
+
+  <% if (error) { %>
+    <div class="bg-rose-50 border border-rose-100 text-rose-600 text-sm rounded-xl p-4 flex items-center justify-between font-semibold">
+      <div class="flex items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+        <span><%= error %></span>
+      </div>
+      <button onclick="this.parentElement.remove()" class="text-rose-400 hover:text-rose-600"><i class="bi bi-x-lg text-xs"></i></button>
+    </div>
+  <% } %>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Opsi 1: Tarik Data API SPMB -->
+  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 flex flex-col justify-between h-full">
+    <div>
+      <h5 class="text-base font-bold text-indigo-600 flex items-center gap-2 mb-3">
+        <i class="bi bi-cloud-arrow-down-fill text-xl"></i> Integrasi API spmb.mjic.sch.id
+      </h5>
+      <p class="text-xs text-slate-400 leading-relaxed mb-6">Tarik data anak yang mendaftar secara otomatis dari sistem pendaftaran online. Sistem akan mendeteksi lembaga (Madrasah, PAUDQu, TPQ, MDT), membuat kelas baru jika belum ada, dan memasukkan data santri tanpa duplikasi.</p>
+      
+      <% if (simulated) { %>
+        <div class="bg-amber-50 border border-amber-100 text-amber-700 text-xs rounded-xl p-3 mb-4 flex items-start gap-2.5 font-medium">
+          <i class="bi bi-info-circle-fill text-sm mt-0.5"></i>
+          <span>Mode Simulasi aktif karena server spmb.mjic.sch.id sedang luring (offline) atau tidak merespon CORS.</span>
+        </div>
+      <% } %>
+    </div>
+
+    <form action="/api/import/spmb" method="POST" id="spmbForm" class="space-y-4">
+      <div>
+        <label for="apiUrl" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">URL API SPMB</label>
+        <input 
+          type="url" 
+          id="apiUrl" 
+          name="apiUrl" 
+          required 
+          value="https://spmb.mjic.sch.id/api/santri-baru" 
+          placeholder="https://spmb.mjic.sch.id/api/..." 
+          class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition"
+        >
+        <div class="text-[10px] text-slate-400 font-semibold mt-1.5">Endpoint API yang mengembalikan format JSON berisi data pendaftaran santri baru.</div>
+      </div>
+
+      <button 
+        type="submit" 
+        id="btnPull" 
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-indigo-500/20 active:scale-[0.98] transition flex items-center justify-center gap-1.5 text-sm"
+      >
+        <i class="bi bi-lightning-fill"></i> Tarik Data Sekarang
+      </button>
+    </form>
+  </div>
+
+  <!-- Opsi 2: Upload Excel / CSV -->
+  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 flex flex-col justify-between h-full">
+    <div>
+      <h5 class="text-base font-bold text-emerald-600 flex items-center gap-2 mb-3">
+        <i class="bi bi-file-earmark-excel-fill text-xl"></i> Unggah File Excel / CSV
+      </h5>
+      <p class="text-xs text-slate-400 leading-relaxed mb-4">Unggah file data santri dalam format Excel (`.xlsx`, `.xls`) atau CSV. Skema file harus mencakup nama kolom yang sesuai agar sistem dapat memproses datanya dengan benar.</p>
+      
+      <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 mb-6">
+        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Struktur Kolom Excel:</div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse bg-white border border-slate-200 rounded-lg overflow-hidden text-xs">
+            <thead>
+              <tr class="bg-slate-100 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200">
+                <th class="p-2">Nama Santri</th>
+                <th class="p-2">Kelas</th>
+                <th class="p-2">Lembaga</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium text-slate-600">
+              <tr>
+                <td class="p-2">Fajar Hidayat</td>
+                <td class="p-2">Kelompok A1</td>
+                <td class="p-2">PAUDQu</td>
+              </tr>
+              <tr>
+                <td class="p-2">Aisyah Putri</td>
+                <td class="p-2">Kelompok A</td>
+                <td class="p-2">TPQ</td>
+              </tr>
+              <tr>
+                <td class="p-2">Hamzah Huzaifah</td>
+                <td class="p-2">Kelas 1</td>
+                <td class="p-2">MDT</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <form action="/api/import/excel" method="POST" enctype="multipart/form-data" class="space-y-4">
+      <div>
+        <label for="excelFile" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilih File Excel/CSV</label>
+        <input 
+          type="file" 
+          id="excelFile" 
+          name="excelFile" 
+          accept=".xlsx, .xls, .csv" 
+          required 
+          class="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+        >
+      </div>
+
+      <button 
+        type="submit" 
+        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition flex items-center justify-center gap-1.5 text-sm border-0"
+      >
+        <i class="bi bi-upload"></i> Upload & Proses Data
+      </button>
+    </form>
+  </div>
+
+  <!-- Opsi 3: Input Manual -->
+  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 flex flex-col justify-between h-full">
+    <div>
+      <div class="flex items-center justify-between mb-3">
+        <h5 class="text-base font-bold text-sky-600 flex items-center gap-2">
+          <i class="bi bi-person-plus-fill text-xl"></i> Input Santri Manual
+        </h5>
+        <button type="button" onclick="isiDataTesting()" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-1 px-2.5 rounded-lg border border-slate-200 transition">
+          <i class="bi bi-magic"></i> Isi Otomatis
+        </button>
+      </div>
+      <p class="text-xs text-slate-400 leading-relaxed mb-6">Tambahkan data santri secara manual satu per satu dengan memilih lembaga dan kelas yang sesuai.</p>
+    </div>
+
+    <form action="/api/import/manual" method="POST" class="space-y-4">
+      <div>
+        <label for="namaManual" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nama Lengkap</label>
+        <input 
+          type="text" 
+          id="namaManual" 
+          name="nama" 
+          required 
+          placeholder="Contoh: Ahmad Budi" 
+          class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition"
+        >
+      </div>
+
+      <div>
+        <label for="lembagaManual" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Lembaga</label>
+        <select id="lembagaManual" name="lembagaId" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition" required>
+          <option value="">Pilih Lembaga...</option>
+          <% lembagas.forEach(l => { %>
+            <% if (l.nama !== 'Madrasah') { %>
+              <option value="<%= l.id %>"><%= l.nama %></option>
+            <% } %>
+          <% }) %>
+        </select>
+      </div>
+
+      <div>
+        <label for="kelasManual" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Kelas Baru/Pilih</label>
+        <input 
+          type="text" 
+          id="kelasManual" 
+          name="kelas" 
+          required 
+          placeholder="Contoh: Kelas 1A" 
+          class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition"
+        >
+        <div class="text-[10px] text-slate-400 font-semibold mt-1.5">Ketik nama kelas. Jika belum ada, sistem otomatis membuatkannya.</div>
+      </div>
+
+      <button 
+        type="submit" 
+        class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-sky-500/20 active:scale-[0.98] transition flex items-center justify-center gap-1.5 text-sm"
+      >
+        <i class="bi bi-save-fill"></i> Simpan Santri
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Script tambahan untuk loading state -->
+<script src="/js/import.js"></script>
+
+<%- include('partials/footer') %>

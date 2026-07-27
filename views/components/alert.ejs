@@ -1,0 +1,23 @@
+<%
+  const type = locals.type || 'success';
+  const message = locals.message || '';
+%>
+<% if (message) { %>
+  <% if (type === 'success') { %>
+    <div class="bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm rounded-xl p-4 flex items-center justify-between font-semibold">
+      <div class="flex items-center gap-2">
+        <i class="bi bi-check-circle-fill text-lg"></i>
+        <span><%= message %></span>
+      </div>
+      <button onclick="this.parentElement.remove()" class="text-emerald-400 hover:text-emerald-600"><i class="bi bi-x-lg text-xs"></i></button>
+    </div>
+  <% } else { %>
+    <div class="bg-rose-50 border border-rose-100 text-rose-600 text-sm rounded-xl p-4 flex items-center justify-between font-semibold">
+      <div class="flex items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+        <span><%= message %></span>
+      </div>
+      <button onclick="this.parentElement.remove()" class="text-rose-400 hover:text-rose-600"><i class="bi bi-x-lg text-xs"></i></button>
+    </div>
+  <% } %>
+<% } %>

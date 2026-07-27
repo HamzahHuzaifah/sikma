@@ -1,0 +1,155 @@
+<%- include('partials/header') %>
+<%- include('partials/sidebar') %>
+
+<%- include('components/page_header', { 
+  title: 'Atur Tagihan Keuangan Santri', 
+  subtitle: 'Kelola jenis dan nominal tagihan (seperti SPP atau Kegiatan Santri) yang harus dibayarkan oleh walisantri berdasarkan lembaga.'
+}) %>
+
+<!-- Alerts -->
+<div class="mb-6 space-y-4">
+  <%- include('components/alert', { type: 'success', message: success }) %>
+  <%- include('components/alert', { type: 'error', message: error }) %>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+  <!-- Form Tambah Tagihan (Left) -->
+  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 lg:col-span-1">
+    <div class="flex items-center gap-2 border-b border-slate-100 pb-4 mb-4">
+      <i class="bi bi-plus-circle-fill text-brand-500 text-lg"></i>
+      <h3 class="font-bold text-slate-700">Buat Tagihan Baru</h3>
+    </div>
+
+    <form action="/tagihan" method="POST" class="space-y-4">
+      <% 
+        let lembagasOptionsHTML = '<option value="">-- Pilih Lembaga --</option>';
+        lembagas.forEach(l => {
+          if (l.nama !== 'Madrasah') {
+            lembagasOptionsHTML += `<option value="${l.id}">${l.nama}</option>`;
+          }
+        });
+      %>
+      <%- include('components/select_field', {
+        id: 'formLembagaId',
+        label: 'Lembaga',
+        name: 'lembagaId',
+        required: true,
+        optionsHTML: lembagasOptionsHTML
+      }) %>
+
+      <%- include('components/input_field', {
+        id: 'nama',
+        label: 'Nama Tagihan',
+        name: 'nama',
+        required: true,
+        placeholder: 'Contoh: SPP Juli, Uang Kitab'
+      }) %>
+
+      <%- include('components/input_field', {
+        id: 'nominal',
+        label: 'Nominal (Rp)',
+        name: 'nominal',
+        type: 'number',
+        min: '1',
+        required: true,
+        placeholder: 'Contoh: 150000'
+      }) %>
+
+      <!-- Keterangan -->
+      <div>
+        <label for="keterangan" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Keterangan</label>
+        <textarea 
+          id="keterangan" 
+          name="keterangan" 
+          rows="3" 
+          placeholder="Catatan tambahan tagihan..." 
+          class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition"
+        ></textarea>
+      </div>
+
+      <!-- Submit -->
+      <button 
+        type="submit" 
+        class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-md hover:shadow-brand-500/10 active:scale-[0.98] transition flex items-center justify-center gap-1.5 text-sm"
+      >
+        <i class="bi bi-save-fill"></i> Simpan Tagihan
+      </button>
+    </form>
+  </div>
+
+  <!-- Daftar Tagihan (Right) -->
+  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden lg:col-span-2">
+    <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <i class="bi bi-tags-fill text-brand-500 text-lg"></i>
+          <h3 class="font-bold text-slate-700">Daftar Pengaturan Tagihan</h3>
+        </div>
+        <span class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full"><%= totalItems %> Tagihan</span>
+      </div>
+
+      <form action="" method="GET" class="relative w-full md:w-56">
+        <input type="text" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>" placeholder="Cari tagihan..." class="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+        <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+      </form>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <th class="p-4 pl-6 w-16 text-center">No</th>
+            <th class="p-4 filterable" data-column="nama" data-options="">Nama Tagihan</th>
+            <th class="p-4 filterable" data-column="lembaga" data-options="<%= filterOptions.lembaga.join(',') %>">Lembaga</th>
+            <th class="p-4">Keterangan</th>
+            <th class="p-4 text-right filterable" data-column="nominal">Nominal</th>
+            <th class="p-4 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+          <% if (tagihans.length === 0) { %>
+            <%- include('components/empty_state', {
+              colspan: 6,
+              icon: 'bi-info-circle',
+              message: 'Belum ada pengaturan tagihan yang dibuat.'
+            }) %>
+          <% } else { %>
+            <% tagihans.forEach((tagihan, index) => { %>
+              <tr class="hover:bg-slate-50/50 transition">
+                <td class="p-4 pl-6 text-center text-slate-400 font-semibold"><%= index + 1 %></td>
+                <td class="p-4 font-semibold text-slate-800"><%= tagihan.nama %></td>
+                <td class="p-4 text-slate-500"><%= tagihan.lembaga ? tagihan.lembaga.nama : '-' %></td>
+                <td class="p-4 text-slate-400 font-normal text-xs max-w-xs truncate"><%= tagihan.keterangan || '-' %></td>
+                <td class="p-4 text-right font-bold text-slate-700">Rp <%= Number(tagihan.nominal).toLocaleString('id-ID') %></td>
+                <td class="p-4 text-center flex items-center justify-center gap-2">
+                  <a href="/tagihan/edit/<%= tagihan.id %>" class="text-indigo-500 hover:text-indigo-700 p-1.5 rounded-lg hover:bg-indigo-50 transition duration-150" title="Edit Tagihan">
+                    <i class="bi bi-pencil-fill text-sm"></i>
+                  </a>
+                  <form action="/tagihan/delete/<%= tagihan.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus aturan tagihan ini?');" class="inline">
+                    <button type="submit" class="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition duration-150" title="Hapus Tagihan">
+                      <i class="bi bi-trash3-fill text-sm"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    <% 
+        let queryStr = '';
+        if (typeof queryParams !== 'undefined') {
+          Object.keys(queryParams).forEach(key => {
+            if (key !== 'page' && key !== 'success' && key !== 'error') {
+              queryStr += `&${key}=${encodeURIComponent(queryParams[key])}`;
+            }
+          });
+        }
+    %>
+    <%- include('components/pagination', { currentPage, totalPages, totalItems, limit, queryStr }) %>
+  </div>
+</div>
+
+<script src="/js/table-filter.js"></script>
+<%- include('partials/footer') %>

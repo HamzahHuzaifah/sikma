@@ -1,0 +1,38 @@
+<div id="custom-confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[10000] flex items-center justify-center hidden opacity-0 transition-opacity duration-200 print:hidden">
+  <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 max-w-sm w-full mx-4 transform scale-95 transition-transform duration-200" id="custom-confirm-content">
+    <div class="flex items-center gap-3.5 mb-4">
+      <div class="bg-amber-50 text-amber-500 p-2.5 rounded-xl">
+        <i class="bi bi-exclamation-circle text-2xl"></i>
+      </div>
+      <div>
+        <h4 class="font-bold text-slate-800 text-base">Konfirmasi Tindakan</h4>
+      </div>
+    </div>
+    <p class="text-sm text-slate-500 leading-relaxed mb-6" id="custom-confirm-message">Apakah Anda yakin ingin melakukan tindakan ini?</p>
+    <div class="flex items-center justify-end gap-3">
+      <button id="custom-confirm-cancel" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 transition duration-150">Batal</button>
+      <button id="custom-confirm-ok" class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition duration-150 shadow-sm">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Alert Modal -->
+<div id="custom-alert-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[10000] flex items-center justify-center hidden opacity-0 transition-opacity duration-200 print:hidden">
+  <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 max-w-sm w-full mx-4 transform scale-95 transition-transform duration-200" id="custom-alert-content">
+    <div class="flex items-center gap-3.5 mb-4">
+      <div class="bg-indigo-50 text-indigo-600 p-2.5 rounded-xl" id="custom-alert-icon-container">
+        <i class="bi bi-info-circle text-2xl" id="custom-alert-icon"></i>
+      </div>
+      <div>
+        <h4 class="font-bold text-slate-800 text-base" id="custom-alert-title">Pemberitahuan</h4>
+      </div>
+    </div>
+    <p class="text-sm text-slate-500 leading-relaxed mb-6" id="custom-alert-message">Pesan notifikasi...</p>
+    <div class="flex items-center justify-end">
+      <button id="custom-alert-ok" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150 shadow-md">Mengerti</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Dropdowns Polyfill & Alert / Confirm Overrides script -->
+<script src="/js/tailwind-components.js"></script>

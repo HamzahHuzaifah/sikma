@@ -1,0 +1,11 @@
+<%
+  const colspan = locals.colspan || 1;
+  const icon = locals.icon || 'bi-inbox';
+  const message = locals.message || 'Belum ada data.';
+%>
+<tr>
+  <td colspan="<%= colspan %>" class="p-8 text-center text-slate-400 font-medium">
+    <i class="bi <%= icon %> text-3xl block mb-2 text-slate-300"></i>
+    <%= message %>
+  </td>
+</tr>

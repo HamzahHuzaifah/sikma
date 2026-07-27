@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - SIKMA Keuangan</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts - Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen flex items-center justify-center font-sans p-4">
+
+  <div class="w-full max-w-md">
+    <!-- Card Wrapper -->
+    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100/10 p-8 md:p-10">
+      
+      <!-- Brand & Header -->
+      <div class="text-center mb-8">
+        <div class="inline-flex bg-indigo-50 text-indigo-600 p-3.5 rounded-2xl mb-4 shadow-sm">
+          <i class="bi bi-wallet2 text-3xl"></i>
+        </div>
+        <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">SIKMA Keuangan</h2>
+        <p class="text-sm text-slate-400 font-medium mt-1">Sistem Keuangan Madrasah & Lembaga</p>
+      </div>
+
+      <!-- Alert Error -->
+      <% if (error) { %>
+        <div class="bg-rose-50 border border-rose-100 text-rose-600 text-sm rounded-xl p-4 mb-6 flex items-center gap-2.5 font-semibold">
+          <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+          <span><%= error %></span>
+        </div>
+      <% } %>
+
+      <!-- Form Login -->
+      <form action="/login" method="POST" class="space-y-5">
+        <div>
+          <label for="username" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Username</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+              <i class="bi bi-person text-lg"></i>
+            </span>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              required 
+              placeholder="Masukkan username" 
+              class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+            >
+          </div>
+        </div>
+        
+        <div>
+          <label for="password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+              <i class="bi bi-lock text-lg"></i>
+            </span>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              required 
+              placeholder="Masukkan password" 
+              class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+            >
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-indigo-500/20 active:scale-[0.98] transition duration-150 mt-2"
+        >
+          Masuk ke Panel Admin
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+</body>
+</html>
