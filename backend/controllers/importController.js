@@ -52,11 +52,13 @@ module.exports = {
 
       for (const row of rows) {
         // Kolom standard: "Nama Santri", "Kelas", "Lembaga"
-        const namaSantri = row['Nama Santri'] || row['Nama'] || row['nama'];
+        let namaSantri = row['Nama Santri'] || row['Nama'] || row['nama'];
         const namaKelas = row['Kelas'] || row['kelas'];
         const namaLembaga = row['Lembaga'] || row['lembaga'];
 
         if (!namaSantri || !namaKelas || !namaLembaga) continue;
+        
+        namaSantri = namaSantri.toUpperCase();
 
         // Cari Lembaga ID
         const lemId = lembagaMap[namaLembaga.trim().toLowerCase()];
@@ -120,11 +122,13 @@ module.exports = {
       });
 
       for (const item of dataSantri) {
-        const namaSantri = item.nama;
+        let namaSantri = item.nama;
         const namaKelas = item.kelas;
         const namaLembaga = item.lembaga;
 
         if (!namaSantri || !namaKelas || !namaLembaga) continue;
+        
+        namaSantri = namaSantri.toUpperCase();
 
         const lemId = lembagaMap[namaLembaga.trim().toLowerCase()];
         if (!lemId) continue;
@@ -153,6 +157,11 @@ module.exports = {
             lembagaId: lemId
           });
           pulledCount++;
+        } else {
+          if (santriExists.nama !== namaSantri.trim()) {
+            santriExists.nama = namaSantri.trim();
+            await santriExists.save();
+          }
         }
       }
 
