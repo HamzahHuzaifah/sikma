@@ -17,12 +17,7 @@ const Tagihan = sequelize.define('Tagihan', {
   },
   lembagaId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Lembaga',
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
   keterangan: {
     type: DataTypes.TEXT,

@@ -31,57 +31,27 @@ const Transaksi = sequelize.define('Transaksi', {
   },
   lembagaId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Lembaga',
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
   kategoriId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'Kategori',
-      key: 'id'
-    },
-    onDelete: 'SET NULL'
+    allowNull: true
   },
   tagihanId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'Tagihan',
-      key: 'id'
-    },
-    onDelete: 'SET NULL'
+    allowNull: true
   },
   kelasId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'Kelas',
-      key: 'id'
-    },
-    onDelete: 'SET NULL'
+    allowNull: true
   },
   santriId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'Santri',
-      key: 'id'
-    },
-    onDelete: 'SET NULL'
+    allowNull: true
   },
   userId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'Users',
-      key: 'id'
-    },
-    onDelete: 'SET NULL'
+    allowNull: true
   },
   
   // Kwitansi Layout Parameters

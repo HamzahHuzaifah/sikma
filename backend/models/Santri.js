@@ -13,21 +13,11 @@ const Santri = sequelize.define('Santri', {
   },
   kelasId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Kelas',
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
   lembagaId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Lembaga',
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+    allowNull: false
   }
 });
 

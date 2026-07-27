@@ -15,6 +15,8 @@ const {
 } = require('./backend/models');
 
 const app = express();
+// PENTING: Trust Proxy agar rate-limit/session bisa membaca IP asli di balik reverse proxy cPanel
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 // Set EJS sebagai Template Engine

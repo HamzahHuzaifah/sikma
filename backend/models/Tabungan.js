@@ -31,39 +31,19 @@ const Tabungan = sequelize.define('Tabungan', {
   },
   lembagaId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Lembaga',
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
   kelasId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'Kelas',
-      key: 'id'
-    },
-    onDelete: 'SET NULL'
+    allowNull: true
   },
   santriId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Santri',
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+    allowNull: false
   },
   userId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'Users',
-      key: 'id'
-    },
-    onDelete: 'SET NULL'
+    allowNull: true
   },
   
   // Kwitansi Layout Parameters

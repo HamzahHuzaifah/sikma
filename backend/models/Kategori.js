@@ -13,12 +13,7 @@ const Kategori = sequelize.define('Kategori', {
   },
   lembagaId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Lembaga',
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+    allowNull: false
   }
 });
 

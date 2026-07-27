@@ -13,12 +13,7 @@ const Kelas = sequelize.define('Kelas', {
   },
   lembagaId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Lembaga',
-      key: 'id'
-    },
-    onDelete: 'CASCADE'
+    allowNull: false
   }
 });
 
