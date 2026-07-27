@@ -42,7 +42,36 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Global Page Loader handling removed for faster perceived navigation
+// Global Page Loader handling
+let loaderTimeout;
+window.addEventListener("beforeunload", () => {
+  const loader = document.getElementById("global-loader");
+  if (loader) {
+    loader.classList.remove("hidden");
+    // Force reflow
+    loader.offsetHeight;
+    loader.classList.remove("opacity-0");
+    loader.classList.add("opacity-100");
+
+    // Fallback in case of downloads or cancelled unload
+    clearTimeout(loaderTimeout);
+    loaderTimeout = setTimeout(() => {
+      loader.classList.add("opacity-0");
+      setTimeout(() => {
+        loader.classList.add("hidden");
+      }, 300);
+    }, 8000); // 8 seconds fallback
+  }
+});
+
+window.addEventListener("pageshow", (event) => {
+  const loader = document.getElementById("global-loader");
+  if (loader) {
+    loader.classList.add("hidden", "opacity-0");
+    loader.classList.remove("opacity-100");
+    clearTimeout(loaderTimeout);
+  }
+});
 
 // ----------------------------------------------------
 // 2. Flatpickr & Select2 Custom Integration
