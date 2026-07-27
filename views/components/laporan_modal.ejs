@@ -1,0 +1,25 @@
+<!-- Laporan Modal (Iframe) -->
+<div id="laporanModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-all p-4" style="display: none;">
+    <div class="bg-white p-0 rounded-2xl w-full max-w-5xl h-[95vh] relative flex flex-col shadow-2xl overflow-hidden ring-1 ring-slate-900/5">
+        <div class="bg-white p-4 border-b border-slate-100 flex justify-between items-center shadow-sm z-10 relative">
+            <h3 class="m-0 text-lg font-bold text-slate-700 flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
+                    <i class="bi bi-printer-fill text-indigo-500"></i>
+                </div>
+                Preview Cetak Laporan F4
+            </h3>
+            <button onclick="closeModalLaporan()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition-colors">
+                <i class="bi bi-x-lg text-sm font-bold"></i>
+            </button>
+        </div>
+        <div class="flex-1 bg-slate-200/50 overflow-hidden relative">
+            <div id="iframeLoader" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-0">
+                <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-indigo-500 mb-3"></div>
+                <p class="text-slate-400 text-sm font-medium">Memuat Laporan...</p>
+            </div>
+            <iframe id="laporanIframe" src="" class="w-full h-full border-none relative z-10 bg-transparent" onload="document.getElementById('iframeLoader').style.display='none'"></iframe>
+        </div>
+    </div>
+</div>
+
+<script src="/js/laporan-modal.js"></script>

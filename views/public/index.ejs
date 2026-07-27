@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIKMA - Portal Walisantri</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <script src="/js/tailwind-config.js"></script>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <a class="flex items-center gap-2" href="/">
+          <div class="bg-brand-500 text-white p-2 rounded-lg shadow-md"><i class="bi bi-wallet2 text-lg"></i></div>
+          <span class="font-bold text-xl tracking-tight text-brand-600">SIKMA</span>
+        </a>
+        <a href="/login" class="bg-brand-50 hover:bg-brand-100 text-brand-700 font-semibold px-4 py-2 rounded-full transition text-sm flex items-center gap-2">
+          <i class="bi bi-box-arrow-in-right"></i> Login Admin
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6">
+    <div class="max-w-3xl w-full text-center space-y-8">
+      <div class="space-y-4">
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-800 tracking-tight">Selamat Datang di Portal Walisantri</h1>
+        <p class="text-lg text-slate-500 max-w-2xl mx-auto">Sistem Informasi Keuangan Madrasah mempermudah Anda dalam memantau administrasi dan tagihan santri secara real-time.</p>
+      </div>
+
+      <!-- Cek Tagihan Card -->
+      <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 max-w-xl mx-auto text-left relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-500 to-indigo-400"></div>
+        <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3"><i class="bi bi-search text-brand-500"></i> Cek Tagihan Santri</h2>
+        
+        <form action="/cek-tagihan" method="GET" class="space-y-5">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Lembaga Pendidikan</label>
+            <select name="lembagaId" class="w-full rounded-xl border-slate-300 bg-slate-50 py-3 pl-4 pr-10 text-sm focus:border-brand-500 focus:ring-brand-500 shadow-sm outline-none transition" required>
+              <option value="">-- Pilih Lembaga --</option>
+              <!-- Di dunia nyata, ini dilempar dari backend, tapi untuk sekarang kita hardcode atau load via AJAX -->
+              <option value="1">Madrasah</option>
+              <option value="2">PAUDQu</option>
+              <option value="3">TPQ</option>
+              <option value="4">MDT</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Santri Lengkap</label>
+            <input type="text" name="namaSantri" placeholder="Contoh: Muhammad Farhan" class="w-full rounded-xl border-slate-300 bg-slate-50 py-3 px-4 text-sm focus:border-brand-500 focus:ring-brand-500 shadow-sm outline-none transition" required>
+          </div>
+          
+          <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2">
+            Cek Sekarang <i class="bi bi-arrow-right"></i>
+          </button>
+        </form>
+        <p class="text-xs text-slate-400 mt-5 text-center">Fitur pencarian ini tidak memerlukan login. Pastikan penulisan nama santri sesuai dengan data madrasah.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="bg-white border-t border-slate-200 py-6 text-center">
+    <p class="text-sm text-slate-500">&copy; 2026 SIKMA. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

@@ -13,7 +13,7 @@
       <i class="bi bi-pencil-square text-indigo-500"></i> Form Edit Santri
     </h2>
 
-    <form action="/santri/edit/<%= santri.id %>" method="POST" class="space-y-6">
+    <form action="/admin/santri/edit/<%= santri.id %>" method="POST" class="space-y-6">
       
       <%- include('components/input_field', {
         id: 'nama',
@@ -47,7 +47,7 @@
       }) %>
 
       <%- include('components/form_actions', {
-        backUrl: '/lembaga/mjic/santri',
+        backUrl: '/admin/lembaga/mjic/santri',
         submitText: 'Simpan Perubahan'
       }) %>
 

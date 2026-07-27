@@ -224,10 +224,11 @@ module.exports = {
       const { slug } = req.params;
 
       const slugMap = {
-        'mjic': { nama: 'Madrasah', title: 'Data Santri MJIC (Madrasah)', folder: 'mjic' },
-        'paudqu': { nama: 'PAUDQu', title: 'Data Santri PAUDQu JIC', folder: 'paudqu.jic' },
-        'tpq': { nama: 'TPQ', title: 'Data Santri TPQ JIC', folder: 'tpq.jic' },
-        'mdt': { nama: 'MDT', title: 'Data Santri MDT JIC', folder: 'mdt.jic' }
+        'mjic': { nama: 'Madrasah', title: 'Data Santri Keseluruhan', folder: 'mjic' },
+        'madrasah': { nama: 'Madrasah', title: 'Data Santri Keseluruhan', folder: 'mjic' },
+        'paudqu': { nama: 'PAUDQu', title: 'Data Santri PAUDQu', folder: 'paudqu.jic' },
+        'tpq': { nama: 'TPQ', title: 'Data Santri TPQ', folder: 'tpq.jic' },
+        'mdt': { nama: 'MDT', title: 'Data Santri MDT', folder: 'mdt.jic' }
       };
 
       const mapping = slugMap[slug.toLowerCase()];
@@ -242,8 +243,8 @@ module.exports = {
       const offset = (page - 1) * limit;
       const search = req.query.search || '';
 
-      // Jika slug adalah mjic (Madrasah), tampilkan semua santri (karena Madrasah menampung semua lembaga)
-      const isMjic = slug.toLowerCase() === 'mjic';
+      // Jika slug adalah mjic (Madrasah) atau madrasah, tampilkan semua santri
+      const isMjic = slug.toLowerCase() === 'mjic' || slug.toLowerCase() === 'madrasah';
       const whereClause = isMjic ? {} : { lembagaId: lembaga.id };
       
       if (search) {
@@ -396,7 +397,7 @@ module.exports = {
       const slugMap = { 'Madrasah': 'mjic', 'PAUDQu': 'paudqu', 'TPQ': 'tpq', 'MDT': 'mdt' };
       const slug = updatedSantri.lembaga ? (slugMap[updatedSantri.lembaga.nama] || 'mjic') : 'mjic';
 
-      res.redirect(`/lembaga/${slug}/santri?success=Data santri berhasil diperbarui!`);
+      res.redirect(`/admin/lembaga/${slug}/santri?success=Data santri berhasil diperbarui!`);
     } catch (error) {
       console.error(error);
       res.status(500).send('Internal Server Error');
@@ -432,7 +433,7 @@ module.exports = {
         return res.redirect(url.toString());
       }
       
-      res.redirect(`/lembaga/${slug}/santri?success=Santri berhasil dihapus!`);
+      res.redirect(`/admin/lembaga/${slug}/santri?success=Santri berhasil dihapus!`);
     } catch (error) {
       console.error(error);
       res.status(500).send('Internal Server Error');

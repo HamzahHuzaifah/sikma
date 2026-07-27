@@ -11,7 +11,7 @@
 
 <!-- Filter Horizontal (SPMB Style) -->
 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 mb-6">
-  <form action="/laporan" method="GET" class="flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
+  <form action="/admin/laporan" method="GET" class="flex flex-wrap md:flex-nowrap items-center gap-3 w-full">
     
     <div class="flex-grow min-w-[200px]">
       <div class="relative">
@@ -75,12 +75,12 @@
       <button type="submit" class="bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-md hover:shadow-brand-500/10 active:scale-[0.98] transition text-sm">
         Filter
       </button>
-      <a href="/laporan" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 font-bold p-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center">
+      <a href="/admin/laporan" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 font-bold p-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center">
         Reset
       </a>
       <button 
         type="button" 
-        onclick="openModalLaporan('/laporan/cetak?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&lembagaId=<%= filters.lembagaId || '' %>')"
+        onclick="openModalLaporan('/admin/laporan/cetak?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&lembagaId=<%= filters.lembagaId || '' %>')"
         class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 px-4 rounded-xl border border-indigo-200 transition text-sm flex items-center gap-1.5"
       >
         <i class="bi bi-printer-fill"></i> Preview Laporan
@@ -107,6 +107,7 @@
           <th class="p-4">No. Transaksi</th>
           <th class="p-4 filterable" data-column="lembaga" data-options="Madrasah,PAUDQu,TPQ,MDT">Lembaga</th>
           <th class="p-4 max-w-[300px]">Uraian</th>
+          <th class="p-4 filterable" data-column="operator">Operator</th>
           <th class="p-4 text-right">Pemasukan</th>
           <th class="p-4 text-right">Pengeluaran</th>
           <th class="p-4 pr-6 text-right font-extrabold text-slate-600">Saldo Akhir</th>
@@ -121,6 +122,7 @@
             <td class="p-4 text-xs font-mono text-slate-400">-</td>
             <td class="p-4 text-xs text-slate-400">-</td>
             <td class="p-4 text-slate-500 font-semibold text-xs italic">Saldo Kas Sebelumnya</td>
+            <td class="p-4 text-xs text-slate-400 text-center">-</td>
             <td class="p-4 text-right font-bold text-emerald-500"><%= saldoAwal > 0 ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(saldoAwal) : '-' %></td>
             <td class="p-4 text-right font-bold text-rose-500"><%= saldoAwal < 0 ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Math.abs(saldoAwal)) : '-' %></td>
             <td class="p-4 pr-6 text-right font-extrabold text-slate-700 bg-slate-100/50">
@@ -168,19 +170,27 @@
                   };
                 %>
                 <% if (t.jenis === 'Pemasukan') { %>
-                  <button type="button" onclick="toggleKwitansiPreview(this, '/lembaga/<%= getSlug(t.lembaga ? t.lembaga.nama : 'Madrasah') %>/kwitansi/<%= t.id %>?preview=1', 10)" class="text-indigo-500 hover:text-indigo-700 p-1 bg-indigo-50 rounded" title="Preview Kwitansi">
+                  <button type="button" onclick="toggleKwitansiPreview(this, '/admin/lembaga/<%= getSlug(t.lembaga ? t.lembaga.nama : 'Madrasah') %>/kwitansi/<%= t.id %>?preview=1', 10)" class="text-indigo-500 hover:text-indigo-700 p-1 bg-indigo-50 rounded" title="Preview Kwitansi">
                     <i class="bi bi-printer-fill text-xs"></i>
                   </button>
                 <% } %>
-                <a href="/transaksi/edit/<%= t.id %>?redirectUrl=/laporan" class="text-brand-500 hover:text-brand-700 p-1 bg-brand-50 rounded" title="Edit Transaksi">
+                <a href="/admin/transaksi/edit/<%= t.id %>?redirectUrl=/admin/laporan" class="text-brand-500 hover:text-brand-700 p-1 bg-brand-50 rounded" title="Edit Transaksi">
                   <i class="bi bi-pencil-fill text-xs"></i>
                 </a>
-                <form action="/transaksi/delete/<%= t.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini?');" class="inline m-0 p-0">
-                  <input type="hidden" name="redirectUrl" value="/laporan">
+                <form action="/admin/transaksi/delete/<%= t.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini?');" class="inline m-0 p-0">
+                  <input type="hidden" name="redirectUrl" value="/admin/laporan">
                   <button type="submit" class="text-rose-500 hover:text-rose-700 p-1 bg-rose-50 rounded" title="Hapus Transaksi">
                     <i class="bi bi-trash3-fill text-xs"></i>
                   </button>
                 </form>
+              </div>
+            </td>
+            <td class="p-4 text-xs font-semibold text-slate-600">
+              <div class="flex items-center gap-1.5" title="<%= (t.user && t.user.nama_lengkap) ? t.user.nama_lengkap : 'Operator' %>">
+                <div class="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 uppercase shrink-0">
+                  <%= (t.user && t.user.nama_lengkap) ? t.user.nama_lengkap.substring(0, 2) : 'OP' %>
+                </div>
+                <span class="truncate max-w-[80px]"><%= (t.user && t.user.nama_lengkap) ? t.user.nama_lengkap.split(' ')[0] : 'Operator' %></span>
               </div>
             </td>
             <td class="p-4 text-right text-xs font-bold text-emerald-600">
@@ -212,43 +222,7 @@
 
 </div>
 
-<!-- Laporan Modal (Iframe) -->
-<div id="laporanModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-all p-4" style="display: none;">
-    <div class="bg-white p-0 rounded-2xl w-full max-w-5xl h-[95vh] relative flex flex-col shadow-2xl overflow-hidden ring-1 ring-slate-900/5">
-        <div class="bg-white p-4 border-b border-slate-100 flex justify-between items-center shadow-sm z-10 relative">
-            <h3 class="m-0 text-lg font-bold text-slate-700 flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
-                    <i class="bi bi-printer-fill text-indigo-500"></i>
-                </div>
-                Preview Cetak Laporan F4
-            </h3>
-            <button onclick="closeModalLaporan()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition-colors">
-                <i class="bi bi-x-lg text-sm font-bold"></i>
-            </button>
-        </div>
-        <div class="flex-1 bg-slate-200/50 overflow-hidden relative">
-            <div id="iframeLoader" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-0">
-                <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-indigo-500 mb-3"></div>
-                <p class="text-slate-400 text-sm font-medium">Memuat Laporan...</p>
-            </div>
-            <iframe id="laporanIframe" src="" class="w-full h-full border-none relative z-10 bg-transparent" onload="document.getElementById('iframeLoader').style.display='none'"></iframe>
-        </div>
-    </div>
-</div>
-
-<script>
-    function openModalLaporan(url) {
-        document.getElementById('laporanModal').style.display = 'flex';
-        document.getElementById('iframeLoader').style.display = 'flex';
-        document.getElementById('laporanIframe').src = url;
-        document.body.style.overflow = 'hidden';
-    }
-    function closeModalLaporan() {
-        document.getElementById('laporanModal').style.display = 'none';
-        document.getElementById('laporanIframe').src = '';
-        document.body.style.overflow = 'auto';
-    }
-</script>
+<%- include('components/laporan_modal') %>
 
 <script src="/js/table-filter.js"></script>
 <script src="/js/preview_kwitansi.js"></script>

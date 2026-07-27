@@ -34,7 +34,7 @@ module.exports = {
       
       const existingUser = await User.findOne({ where: { username } });
       if (existingUser) {
-        return res.redirect('/users?error=Username sudah digunakan!');
+        return res.redirect('/super-admin/users?error=Username sudah digunakan!');
       }
 
       await User.create({
@@ -44,10 +44,10 @@ module.exports = {
         role: role || 'Staf'
       });
 
-      res.redirect('/users?success=Akun berhasil dibuat!');
+      res.redirect('/super-admin/users?success=Akun berhasil dibuat!');
     } catch (error) {
       console.error(error);
-      res.redirect('/users?error=Gagal membuat akun!');
+      res.redirect('/super-admin/users?error=Gagal membuat akun!');
     }
   },
 
@@ -60,7 +60,7 @@ module.exports = {
       });
 
       if (!user) {
-        return res.redirect('/users?error=Akun tidak ditemukan!');
+        return res.redirect('/super-admin/users?error=Akun tidak ditemukan!');
       }
 
       res.render('users_form', {
@@ -81,14 +81,14 @@ module.exports = {
 
       const user = await User.findByPk(id);
       if (!user) {
-        return res.redirect('/users?error=Akun tidak ditemukan!');
+        return res.redirect('/super-admin/users?error=Akun tidak ditemukan!');
       }
 
       // Check if username is changed and already exists
       if (username !== user.username) {
         const existingUser = await User.findOne({ where: { username } });
         if (existingUser) {
-          return res.redirect(`/users?error=Username sudah digunakan!`);
+          return res.redirect(`/super-admin/users?error=Username sudah digunakan!`);
         }
       }
 
@@ -102,10 +102,10 @@ module.exports = {
 
       await user.save();
 
-      res.redirect('/users?success=Akun berhasil diperbarui!');
+      res.redirect('/super-admin/users?success=Akun berhasil diperbarui!');
     } catch (error) {
       console.error(error);
-      res.redirect('/users?error=Gagal memperbarui akun!');
+      res.redirect('/super-admin/users?error=Gagal memperbarui akun!');
     }
   },
 
@@ -116,19 +116,19 @@ module.exports = {
       const user = await User.findByPk(id);
 
       if (!user) {
-        return res.redirect('/users?error=Akun tidak ditemukan!');
+        return res.redirect('/super-admin/users?error=Akun tidak ditemukan!');
       }
 
       // Prevent deleting self
       if (req.session.userId === user.id) {
-         return res.redirect('/users?error=Tidak dapat menghapus akun Anda sendiri!');
+         return res.redirect('/super-admin/users?error=Tidak dapat menghapus akun Anda sendiri!');
       }
 
       await user.destroy();
-      res.redirect('/users?success=Akun berhasil dihapus!');
+      res.redirect('/super-admin/users?success=Akun berhasil dihapus!');
     } catch (error) {
       console.error(error);
-      res.redirect('/users?error=Gagal menghapus akun!');
+      res.redirect('/super-admin/users?error=Gagal menghapus akun!');
     }
   }
 };

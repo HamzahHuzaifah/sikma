@@ -14,9 +14,9 @@
       <i class="bi bi-pencil-square text-indigo-500"></i> Form Edit Transaksi
     </h2>
 
-    <form action="/transaksi/edit/<%= transaction.id %>" method="POST" class="space-y-6">
+    <form action="/admin/transaksi/edit/<%= transaction.id %>" method="POST" class="space-y-6">
       <!-- Hidden redirectUrl field to return back to referer -->
-      <input type="hidden" name="redirectUrl" value="<%= queryParams && queryParams.redirectUrl ? queryParams.redirectUrl : '/laporan' %>">
+      <input type="hidden" name="redirectUrl" value="<%= queryParams && queryParams.redirectUrl ? queryParams.redirectUrl : '/admin/laporan' %>">
 
       <!-- Tanggal Transaksi & Lembaga -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

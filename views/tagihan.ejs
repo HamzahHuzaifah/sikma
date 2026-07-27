@@ -20,7 +20,7 @@
       <h3 class="font-bold text-slate-700">Buat Tagihan Baru</h3>
     </div>
 
-    <form action="/tagihan" method="POST" class="space-y-4">
+    <form action="/admin/tagihan" method="POST" class="space-y-4">
       <% 
         let lembagasOptionsHTML = '<option value="">-- Pilih Lembaga --</option>';
         lembagas.forEach(l => {
@@ -122,10 +122,10 @@
                 <td class="p-4 text-slate-400 font-normal text-xs max-w-xs truncate"><%= tagihan.keterangan || '-' %></td>
                 <td class="p-4 text-right font-bold text-slate-700">Rp <%= Number(tagihan.nominal).toLocaleString('id-ID') %></td>
                 <td class="p-4 text-center flex items-center justify-center gap-2">
-                  <a href="/tagihan/edit/<%= tagihan.id %>" class="text-indigo-500 hover:text-indigo-700 p-1.5 rounded-lg hover:bg-indigo-50 transition duration-150" title="Edit Tagihan">
+                  <a href="/admin/tagihan/edit/<%= tagihan.id %>" class="text-indigo-500 hover:text-indigo-700 p-1.5 rounded-lg hover:bg-indigo-50 transition duration-150" title="Edit Tagihan">
                     <i class="bi bi-pencil-fill text-sm"></i>
                   </a>
-                  <form action="/tagihan/delete/<%= tagihan.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus aturan tagihan ini?');" class="inline">
+                  <form action="/admin/tagihan/delete/<%= tagihan.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus aturan tagihan ini?');" class="inline">
                     <button type="submit" class="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition duration-150" title="Hapus Tagihan">
                       <i class="bi bi-trash3-fill text-sm"></i>
                     </button>

@@ -63,7 +63,7 @@
               <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(lem.saldo) %>
             </td>
             <td class="p-4 text-center">
-              <a href="/laporan?lembagaId=<%= lem.id %>" class="inline-flex items-center gap-1.5 px-4 py-1.5 border border-slate-200 rounded-full text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition">
+              <a href="/admin/laporan?lembagaId=<%= lem.id %>" class="inline-flex items-center gap-1.5 px-4 py-1.5 border border-slate-200 rounded-full text-xs font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition">
                 <i class="bi bi-eye"></i> Detail
               </a>
             </td>

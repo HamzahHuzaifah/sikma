@@ -247,6 +247,17 @@ sequelize.authenticate()
       console.log('[Database] Berhasil menambahkan kolom userId di InfakHarian.');
     } catch (err) { }
 
+    // Pastikan kolom role di Users mencakup 'Super Admin'
+    try {
+      await sequelize.query("ALTER TABLE Users MODIFY COLUMN role ENUM('Super Admin', 'Admin', 'Staf') DEFAULT 'Staf';");
+      console.log('[Database] Berhasil memperbarui ENUM role di tabel Users.');
+      
+      // Update akun admin bawaan agar langsung menjadi Super Admin
+      await User.update({ role: 'Super Admin' }, { where: { username: 'admin' } });
+    } catch (err) {
+      console.warn('[Database] Peringatan: Gagal memodifikasi role di Users:', err.message);
+    }
+
     // Jalankan seeding data awal
     await seedInitialData();
     

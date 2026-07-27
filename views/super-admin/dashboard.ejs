@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+
+<%- include('../partials/super-admin-sidebar') %>
+
+<main class="flex-grow bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
+  <header class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Super Admin Dashboard</h1>
+      <p class="text-sm text-slate-500 mt-1">Kelola akses, pengaturan sistem, dan manajemen pengguna SIKMA.</p>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Card 1 -->
+    <div class="bg-gradient-to-br from-brand-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group">
+      <div class="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4 group-hover:scale-110 transition duration-500">
+        <i class="bi bi-people-fill" style="font-size: 8rem;"></i>
+      </div>
+      <div class="relative z-10">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-medium text-brand-100">Total Pengguna</h3>
+          <span class="bg-white/20 p-2 rounded-lg backdrop-blur-sm"><i class="bi bi-person-badge"></i></span>
+        </div>
+        <div class="text-4xl font-extrabold mb-1">
+          <!-- Kita bisa pass dari controller jika perlu -->
+          Data User
+        </div>
+        <p class="text-sm text-brand-200 font-medium mt-4"><a href="/super-admin/users" class="hover:text-white transition">Kelola Pengguna <i class="bi bi-arrow-right"></i></a></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-8 flex items-start gap-4">
+    <div class="bg-amber-100 text-amber-600 p-2.5 rounded-lg shrink-0">
+      <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+    </div>
+    <div>
+      <h4 class="font-bold text-amber-800 mb-1">Perhatian (Hak Akses Super Admin)</h4>
+      <p class="text-sm text-amber-700 leading-relaxed">
+        Anda berada di area Super Admin. Hati-hati saat mengubah atau menghapus data pengguna, karena akan berdampak langsung pada akses sistem.
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<%- include('../partials/footer') %>

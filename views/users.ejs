@@ -1,5 +1,5 @@
 <%- include('partials/header') %>
-<%- include('partials/sidebar') %>
+<%- include('partials/super-admin-sidebar') %>
 
 <div class="w-full">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
@@ -7,7 +7,7 @@
       <h1 class="text-2xl font-bold text-slate-800">Kelola Pengguna</h1>
       <p class="text-sm text-slate-500 mt-1">Daftar akun admin dan staf SIKMA</p>
     </div>
-    <a href="/users/create" class="inline-flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-sm transition-all focus:ring-4 focus:ring-brand-500/20 active:scale-95">
+    <a href="/super-admin/users/create" class="inline-flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-sm transition-all focus:ring-4 focus:ring-brand-500/20 active:scale-95">
       <i class="bi bi-person-plus text-lg"></i> Tambah Akun
     </a>
   </div>
@@ -57,11 +57,11 @@
                 </td>
                 <td class="p-4 align-middle text-right">
                   <div class="flex items-center justify-end gap-2">
-                    <a href="/users/edit/<%= user.id %>" class="text-brand-600 hover:text-brand-800 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-lg transition" title="Edit">
+                    <a href="/super-admin/users/edit/<%= user.id %>" class="text-brand-600 hover:text-brand-800 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-lg transition" title="Edit">
                       <i class="bi bi-pencil-square"></i> Edit
                     </a>
                     <% if (locals.user && locals.user.id !== user.id) { %>
-                    <form action="/users/delete/<%= user.id %>" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun ini?');">
+                    <form action="/super-admin/users/delete/<%= user.id %>" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun ini?');">
                       <button type="submit" class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition" title="Hapus">
                         <i class="bi bi-trash"></i> Hapus
                       </button>

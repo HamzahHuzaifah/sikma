@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cek Tagihan - SIKMA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <script src="/js/tailwind-config.js"></script>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        <a class="flex items-center gap-2" href="/">
+          <div class="bg-brand-500 text-white p-2 rounded-lg shadow-md"><i class="bi bi-arrow-left text-lg"></i></div>
+          <span class="font-bold text-xl tracking-tight text-brand-600">Kembali</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6">
+    <div class="max-w-xl w-full text-center space-y-6 bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
+      <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="bi bi-tools text-4xl"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-800">Fitur Sedang Dikembangkan</h1>
+      <p class="text-slate-500">Pencarian tagihan untuk santri <strong><%= namaSantri %></strong> di lembaga ID <strong><%= lembagaId %></strong> akan segera tersedia. Kami sedang menyiapkan sistem pencarian publik yang aman.</p>
+      
+      <a href="/" class="inline-block mt-4 bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg shadow-brand-500/30">
+        Kembali ke Halaman Utama
+      </a>
+    </div>
+  </main>
+
+</body>
+</html>

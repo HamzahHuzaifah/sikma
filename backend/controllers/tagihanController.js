@@ -95,7 +95,7 @@ module.exports = {
     const { nama, nominal, lembagaId, keterangan } = req.body;
     try {
       if (!nama || !nominal || !lembagaId) {
-        return res.redirect('/tagihan?error=Harap mengisi semua field wajib!');
+        return res.redirect('/admin/tagihan?error=Harap mengisi semua field wajib!');
       }
 
       await Tagihan.create({
@@ -105,10 +105,10 @@ module.exports = {
         keterangan: keterangan || ''
       });
 
-      res.redirect('/tagihan?success=Tagihan baru berhasil dibuat!');
+      res.redirect('/admin/tagihan?success=Tagihan baru berhasil dibuat!');
     } catch (error) {
       console.error(error);
-      res.redirect('/tagihan?error=Gagal membuat tagihan: ' + encodeURIComponent(error.message));
+      res.redirect('/admin/tagihan?error=Gagal membuat tagihan: ' + encodeURIComponent(error.message));
     }
   },
 
@@ -118,14 +118,14 @@ module.exports = {
     try {
       const tagihan = await Tagihan.findByPk(id);
       if (!tagihan) {
-        return res.redirect('/tagihan?error=Tagihan tidak ditemukan!');
+        return res.redirect('/admin/tagihan?error=Tagihan tidak ditemukan!');
       }
 
       await tagihan.destroy();
-      res.redirect('/tagihan?success=Tagihan berhasil dihapus!');
+      res.redirect('/admin/tagihan?success=Tagihan berhasil dihapus!');
     } catch (error) {
       console.error(error);
-      res.redirect('/tagihan?error=Gagal menghapus tagihan: ' + encodeURIComponent(error.message));
+      res.redirect('/admin/tagihan?error=Gagal menghapus tagihan: ' + encodeURIComponent(error.message));
     }
   },
 
@@ -137,6 +137,36 @@ module.exports = {
         where: { lembagaId }
       });
       res.json(tagihans);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  // API - Ambil daftar tagihan yang BELUM DIBAYAR oleh santri tertentu
+  apiGetUnpaidTagihan: async (req, res) => {
+    try {
+      const { lembagaId, santriId } = req.params;
+      
+      const tagihans = await Tagihan.findAll({
+        where: { lembagaId }
+      });
+      
+      const { Transaksi } = require('../models');
+      const paidTransactions = await Transaksi.findAll({
+        where: {
+          santriId,
+          jenis: 'Pemasukan',
+          tagihanId: {
+            [Op.ne]: null
+          }
+        },
+        attributes: ['tagihanId']
+      });
+
+      const paidTagihanIds = paidTransactions.map(t => t.tagihanId);
+      const unpaidTagihans = tagihans.filter(t => !paidTagihanIds.includes(t.id));
+      
+      res.json(unpaidTagihans);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -177,7 +207,7 @@ module.exports = {
         keterangan: keterangan || ''
       });
 
-      res.redirect('/tagihan?success=Aturan tagihan berhasil diperbarui!');
+      res.redirect('/admin/tagihan?success=Aturan tagihan berhasil diperbarui!');
     } catch (error) {
       console.error(error);
       res.status(500).send('Internal Server Error');

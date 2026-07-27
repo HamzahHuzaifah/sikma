@@ -11,7 +11,7 @@
 
 <!-- Filter Horizontal (SPMB Style) -->
 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 mb-6">
-  <form action="/tabungan" method="GET" id="filterForm" class="flex flex-wrap items-center gap-3 w-full">
+  <form action="/admin/tabungan" method="GET" id="filterForm" class="flex flex-wrap items-center gap-3 w-full">
     
     <div class="flex-grow min-w-[200px]">
       <div class="relative">
@@ -76,6 +76,7 @@
       <select 
         id="kelasId" 
         name="kelasId" 
+        data-selected-kelas="<%= typeof filters !== 'undefined' && filters.kelasId ? filters.kelasId : '' %>"
         class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition cursor-pointer"
         onchange="loadSantriFilter(this.value)"
       >
@@ -87,6 +88,7 @@
       <select 
         id="santriId" 
         name="santriId" 
+        data-selected-santri="<%= typeof filters !== 'undefined' && filters.santriId ? filters.santriId : '' %>"
         class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition cursor-pointer"
       >
         <option value="">Semua Santri</option>
@@ -97,12 +99,12 @@
       <button type="submit" class="bg-brand-500 hover:bg-brand-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-md hover:shadow-brand-500/10 active:scale-[0.98] transition text-sm">
         Filter
       </button>
-      <a href="/tabungan" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 font-bold p-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center">
+      <a href="/admin/tabungan" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 font-bold p-2.5 px-4 rounded-xl transition text-sm flex items-center justify-center">
         Reset
       </a>
       <button 
         type="button" 
-        onclick="openModalLaporan('/tabungan/cetak?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&lembagaId=<%= filters.lembagaId || '' %>&kelasId=<%= typeof filters !== 'undefined' && filters.kelasId ? filters.kelasId : '' %>&santriId=<%= typeof filters !== 'undefined' && filters.santriId ? filters.santriId : '' %>')"
+        onclick="openModalLaporan('/admin/tabungan/cetak?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&lembagaId=<%= filters.lembagaId || '' %>&kelasId=<%= typeof filters !== 'undefined' && filters.kelasId ? filters.kelasId : '' %>&santriId=<%= typeof filters !== 'undefined' && filters.santriId ? filters.santriId : '' %>')"
         class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 px-4 rounded-xl border border-indigo-200 transition text-sm flex items-center gap-1.5"
       >
         <i class="bi bi-printer-fill"></i> Preview Laporan
@@ -129,6 +131,7 @@
           <th class="p-4">No. Transaksi</th>
           <th class="p-4">Lembaga</th>
           <th class="p-4 max-w-[300px]">Uraian</th>
+          <th class="p-4">Operator</th>
           <th class="p-4 text-right">Setor (Masuk)</th>
           <th class="p-4 text-right">Tarik (Keluar)</th>
           <th class="p-4 pr-6 text-right font-extrabold text-slate-600">Saldo Akhir</th>
@@ -143,6 +146,7 @@
             <td class="p-4 text-xs font-mono text-slate-400">-</td>
             <td class="p-4 text-xs text-slate-400">-</td>
             <td class="p-4 text-slate-500 font-semibold text-xs italic">Saldo Tabungan Sebelumnya</td>
+            <td class="p-4 text-xs text-slate-400">-</td>
             <td class="p-4 text-right font-bold text-emerald-500"><%= saldoAwal > 0 ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(saldoAwal) : '-' %></td>
             <td class="p-4 text-right font-bold text-rose-500"><%= saldoAwal < 0 ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Math.abs(saldoAwal)) : '-' %></td>
             <td class="p-4 pr-6 text-right font-extrabold text-slate-700 bg-slate-100/50">
@@ -152,61 +156,133 @@
 
         <% if (tabunganList.length === 0) { %>
           <%- include('components/empty_state', {
-            colspan: 8,
+            colspan: 9,
             message: 'Belum ada mutasi tabungan.'
           }) %>
         <% } %>
 
         <% 
-        let no = (currentPage - 1) * limit + 1;
-        tabunganList.forEach(t => { 
-            let uraianText = t.keterangan || '';
-            if (t.kelas) uraianText = `[Kelas: ${t.kelas.nama}] ` + uraianText;
-            if (t.santri) uraianText = `[Santri: ${t.santri.nama}] ` + uraianText;
+          let currentIndex = (currentPage - 1) * limit;
+          tabunganList.forEach((group, groupIndex) => { 
         %>
-          <tr class="hover:bg-slate-50 transition relative group">
-            <td class="p-4 pl-6 text-center text-xs text-slate-400"><%= no++ %></td>
-            <td class="p-4 text-xs font-mono text-slate-500 whitespace-nowrap">
-              <%= new Date(t.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) %>
-            </td>
-            <td class="p-4 text-xs font-mono text-slate-600"><%= t.nomor_kwitansi || '-' %></td>
-            <td class="p-4 text-xs font-semibold text-slate-700"><%= t.lembaga ? t.lembaga.nama : '-' %></td>
-            <td class="p-4 text-xs leading-relaxed max-w-[300px] truncate" title="<%= uraianText %>">
-              <%= uraianText || '-' %>
-              
-              <!-- Aksi Edit/Delete melayang saat hover -->
-              <div class="absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white/90 backdrop-blur-sm p-1.5 rounded-lg shadow-sm border border-slate-200 pointer-events-none group-hover:pointer-events-auto z-10">
-                <% 
-                  const getSlug = (lembagaName) => {
-                    const name = lembagaName.toLowerCase();
-                    if (name.includes('madrasah')) return 'mjic';
-                    if (name.includes('paudqu')) return 'paudqu';
-                    if (name.includes('tpq')) return 'tpq';
-                    if (name.includes('mdt')) return 'mdt';
-                    return 'mjic';
-                  };
-                %>
-                <button type="button" onclick="toggleKwitansiPreview(this, '/lembaga/<%= getSlug(t.lembaga ? t.lembaga.nama : 'Madrasah') %>/tabungan-kwitansi/<%= t.id %>?preview=1', 9)" class="text-indigo-500 hover:text-indigo-700 p-1 bg-indigo-50 rounded" title="Preview Kwitansi">
-                    <i class="bi bi-printer-fill text-xs"></i>
-                </button>
-                <form action="/tabungan/delete/<%= t.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini?');" class="inline m-0 p-0">
-                  <input type="hidden" name="redirectUrl" value="/tabungan">
-                  <button type="submit" class="text-rose-500 hover:text-rose-700 p-1 bg-rose-50 rounded" title="Hapus Transaksi">
-                    <i class="bi bi-trash3-fill text-xs"></i>
-                  </button>
-                </form>
-              </div>
-            </td>
-            <td class="p-4 text-right text-xs font-bold text-emerald-600">
-              <%= t.tipe === 'Setor' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.nominal) : '-' %>
-            </td>
-            <td class="p-4 text-right text-xs font-bold text-rose-600">
-              <%= t.tipe === 'Tarik' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.nominal) : '-' %>
-            </td>
-            <td class="p-4 pr-6 text-right text-sm font-extrabold <%= t.saldoAkhir >= 0 ? 'text-indigo-700' : 'text-rose-700' %> bg-slate-50/50">
-              <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.saldoAkhir) %>
-            </td>
-          </tr>
+          <% if (group.items.length === 1) { %>
+            <% const t = group.items[0]; currentIndex++; %>
+            <tr class="hover:bg-slate-50/50 transition">
+                <td class="p-4 pl-6 text-center text-slate-400 font-semibold"><%= currentIndex %></td>
+                <td class="p-4 text-xs font-mono"><%= new Date(t.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></td>
+                <td class="p-4 text-xs font-mono text-slate-500"><%= t.nomor_kwitansi || '-' %></td>
+                <td class="p-4 font-semibold text-slate-800"><%= t.lembaga ? t.lembaga.nama : '-' %></td>
+                <td class="p-4 text-slate-500 font-medium text-xs max-w-xs truncate" title="[Santri: <%= t.santri ? t.santri.nama : '-' %>] [Kelas: <%= t.kelas ? t.kelas.nama : 'Umum' %>] <%= t.keterangan || '' %>">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-brand-100 text-brand-600 mr-1"><%= t.kelas ? t.kelas.nama : 'Umum' %></span>
+                  <span class="font-bold text-slate-700"><%= t.santri ? t.santri.nama : '-' %></span> - <%= t.keterangan || '-' %>
+                </td>
+                <td class="p-4 text-xs font-medium text-slate-500"><%= t.user ? t.user.nama_lengkap : 'Sistem' %></td>
+                <td class="p-4 text-right font-bold text-emerald-500"><%= t.tipe === 'Setor' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.nominal) : '-' %></td>
+                <td class="p-4 text-right font-bold text-rose-500"><%= t.tipe === 'Tarik' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.nominal) : '-' %></td>
+                <td class="p-4 pr-6 text-right font-extrabold text-slate-700 bg-slate-50">
+                    <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.saldoAkhir) %>
+                </td>
+            </tr>
+            <!-- Row Actions for single item -->
+            <tr class="bg-slate-50/20 border-b border-slate-100/50">
+               <td colspan="5"></td>
+               <td colspan="4" class="p-2 pr-6 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <span class="text-[10px] text-slate-400 font-semibold mr-2 uppercase tracking-wider">Aksi Transaksi:</span>
+                    <% 
+                      const getSlug = (lembagaName) => {
+                        const name = lembagaName.toLowerCase();
+                        if (name.includes('madrasah')) return 'mjic';
+                        if (name.includes('paudqu')) return 'paudqu';
+                        if (name.includes('tpq')) return 'tpq';
+                        if (name.includes('mdt')) return 'mdt';
+                        return 'mjic';
+                      };
+                    %>
+                    <button type="button" onclick="toggleKwitansiPreview(this, '/admin/lembaga/<%= getSlug(t.lembaga ? t.lembaga.nama : 'Madrasah') %>/tabungan-kwitansi/<%= t.id %>?preview=1', 9)" class="text-indigo-500 hover:text-indigo-700 p-1 bg-indigo-50 rounded" title="Preview Kwitansi">
+                        <i class="bi bi-printer-fill text-xs"></i>
+                    </button>
+                    <form action="/admin/tabungan/delete/<%= t.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini?');" class="inline m-0 p-0">
+                      <input type="hidden" name="redirectUrl" value="/admin/tabungan">
+                      <button type="submit" class="text-rose-500 hover:text-rose-700 p-1 bg-rose-50 rounded" title="Hapus Transaksi">
+                        <i class="bi bi-trash3-fill text-xs"></i>
+                      </button>
+                    </form>
+                  </div>
+               </td>
+            </tr>
+          <% } else { %>
+            <% currentIndex++; %>
+            <tr class="hover:bg-slate-50/50 transition cursor-pointer" onclick="document.getElementById('group-<%= groupIndex %>').classList.toggle('hidden')">
+                <td class="p-4 pl-6 text-center text-slate-400 font-semibold"><%= currentIndex %> <i class="bi bi-chevron-down text-[10px] ml-1 text-brand-500"></i></td>
+                <td class="p-4 text-xs font-mono"><%= new Date(group.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) %></td>
+                <td class="p-4 text-xs font-mono text-brand-600 font-semibold">Mutasi Massal</td>
+                <td class="p-4 font-semibold text-slate-800"><%= group.lembaga ? group.lembaga.nama : '-' %></td>
+                <td class="p-4 text-slate-500 font-medium text-xs max-w-xs truncate">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-brand-100 text-brand-600 mr-1"><%= group.kelas ? group.kelas.nama : 'Umum' %></span>
+                  <%= group.tipe %> Tabungan Massal (<%= group.items.length %> Santri)
+                </td>
+                <td class="p-4 text-xs font-medium text-slate-500"><%= group.items[0].user ? group.items[0].user.nama_lengkap : 'Sistem' %></td>
+                <td class="p-4 text-right font-bold text-emerald-500"><%= group.tipe === 'Setor' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(group.totalNominal) : '-' %></td>
+                <td class="p-4 text-right font-bold text-rose-500"><%= group.tipe === 'Tarik' ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(group.totalNominal) : '-' %></td>
+                <td class="p-4 pr-6 text-right font-extrabold text-slate-700 bg-slate-50">
+                    <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(group.saldoAkhir) %>
+                </td>
+            </tr>
+            <tr id="group-<%= groupIndex %>" class="hidden bg-slate-50/50 border-y border-slate-200">
+               <td colspan="9" class="p-0">
+                  <div class="p-4 bg-white shadow-inner">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3"><i class="bi bi-list-ul mr-1"></i> Rincian Transaksi Massal</h4>
+                    <table class="w-full text-left text-xs">
+                       <thead class="text-slate-400 border-b border-slate-100">
+                         <tr>
+                           <th class="py-2 pl-4 w-10 text-center">No</th>
+                           <th class="py-2">No. Kwitansi</th>
+                           <th class="py-2">Nama Santri</th>
+                           <th class="py-2">Keterangan</th>
+                           <th class="py-2">Operator</th>
+                           <th class="py-2 text-right">Nominal</th>
+                           <th class="py-2 text-center w-24">Aksi</th>
+                         </tr>
+                       </thead>
+                       <tbody class="divide-y divide-slate-50 text-slate-600">
+                         <% 
+                           const getSlug = (lembagaName) => {
+                             const name = lembagaName.toLowerCase();
+                             if (name.includes('madrasah')) return 'mjic';
+                             if (name.includes('paudqu')) return 'paudqu';
+                             if (name.includes('tpq')) return 'tpq';
+                             if (name.includes('mdt')) return 'mdt';
+                             return 'mjic';
+                           };
+                           group.items.forEach((t, i) => { 
+                         %>
+                           <tr class="hover:bg-slate-50 transition">
+                             <td class="py-2 pl-4 text-center"><%= i + 1 %></td>
+                             <td class="py-2 font-mono text-slate-500"><%= t.nomor_kwitansi || '-' %></td>
+                             <td class="py-2 font-semibold text-slate-700"><%= t.santri ? t.santri.nama : '-' %></td>
+                             <td class="py-2 max-w-[200px] truncate"><%= t.keterangan || '-' %></td>
+                             <td class="py-2 font-medium text-slate-500"><%= t.user ? t.user.nama_lengkap : 'Sistem' %></td>
+                             <td class="py-2 text-right font-bold <%= group.tipe === 'Setor' ? 'text-emerald-500' : 'text-rose-500' %>"><%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.nominal) %></td>
+                             <td class="py-2 text-center">
+                               <button type="button" onclick="toggleKwitansiPreview(this, '/admin/lembaga/<%= getSlug(t.lembaga ? t.lembaga.nama : 'Madrasah') %>/tabungan-kwitansi/<%= t.id %>?preview=1', 9)" class="text-indigo-500 hover:text-indigo-700 p-1 bg-indigo-50 rounded" title="Preview Kwitansi">
+                                   <i class="bi bi-printer-fill text-xs"></i>
+                               </button>
+                               <form action="/admin/tabungan/delete/<%= t.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi ini?');" class="inline m-0 p-0">
+                                 <input type="hidden" name="redirectUrl" value="/admin/tabungan">
+                                 <button type="submit" class="text-rose-500 hover:text-rose-700 p-1 bg-rose-50 rounded" title="Hapus Transaksi">
+                                   <i class="bi bi-trash3-fill text-[10px]"></i>
+                                 </button>
+                               </form>
+                             </td>
+                           </tr>
+                         <% }) %>
+                       </tbody>
+                    </table>
+                  </div>
+               </td>
+            </tr>
+          <% } %>
         <% }) %>
       </tbody>
     </table>
@@ -226,88 +302,9 @@
 
 </div>
 
-<!-- Laporan Modal (Iframe) -->
-<div id="laporanModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-all p-4" style="display: none;">
-    <div class="bg-white p-0 rounded-2xl w-full max-w-5xl h-[95vh] relative flex flex-col shadow-2xl overflow-hidden ring-1 ring-slate-900/5">
-        <div class="bg-white p-4 border-b border-slate-100 flex justify-between items-center shadow-sm z-10 relative">
-            <h3 class="m-0 text-lg font-bold text-slate-700 flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center">
-                    <i class="bi bi-printer-fill text-indigo-500"></i>
-                </div>
-                Preview Cetak Laporan F4
-            </h3>
-            <button onclick="closeModalLaporan()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 transition-colors">
-                <i class="bi bi-x-lg text-sm font-bold"></i>
-            </button>
-        </div>
-        <div class="flex-1 bg-slate-200/50 overflow-hidden relative">
-            <div id="iframeLoader" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-0">
-                <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-indigo-500 mb-3"></div>
-                <p class="text-slate-400 text-sm font-medium">Memuat Laporan...</p>
-            </div>
-            <iframe id="laporanIframe" src="" class="w-full h-full border-none relative z-10 bg-transparent" onload="document.getElementById('iframeLoader').style.display='none'"></iframe>
-        </div>
-    </div>
-</div>
+<%- include('components/laporan_modal') %>
 
-<script>
-    function openModalLaporan(url) {
-        document.getElementById('laporanModal').style.display = 'flex';
-        document.getElementById('iframeLoader').style.display = 'flex';
-        document.getElementById('laporanIframe').src = url;
-        document.body.style.overflow = 'hidden';
-    }
-    function closeModalLaporan() {
-        document.getElementById('laporanModal').style.display = 'none';
-        document.getElementById('laporanIframe').src = '';
-        document.body.style.overflow = 'auto';
-    }
-</script>
-
-<script>
-    // Memuat Kelas Berdasarkan Lembaga
-    function loadKelasFilter(lembagaId) {
-      const kelasSelect = document.getElementById('kelasId');
-      kelasSelect.innerHTML = '<option value="">Semua Kelas</option>';
-      document.getElementById('santriId').innerHTML = '<option value="">Semua Santri</option>';
-      if (!lembagaId) return;
-
-      fetch(`/api/kelas?lembagaId=${lembagaId}`)
-        .then(res => res.json())
-        .then(data => {
-          data.forEach(k => {
-            const selected = '<%= typeof filters !== "undefined" && filters.kelasId ? filters.kelasId : "" %>' == k.id ? 'selected' : '';
-            kelasSelect.innerHTML += `<option value="${k.id}" ${selected}>${k.nama}</option>`;
-          });
-          // Auto load santri if kelas is selected
-          if (kelasSelect.value) loadSantriFilter(kelasSelect.value);
-        });
-    }
-
-    // Memuat Santri Berdasarkan Kelas
-    function loadSantriFilter(kelasId) {
-      const santriSelect = document.getElementById('santriId');
-      santriSelect.innerHTML = '<option value="">Semua Santri</option>';
-      if (!kelasId) return;
-
-      fetch(`/api/santri?kelasId=${kelasId}`)
-        .then(res => res.json())
-        .then(data => {
-          data.forEach(s => {
-            const selected = '<%= typeof filters !== "undefined" && filters.santriId ? filters.santriId : "" %>' == s.id ? 'selected' : '';
-            santriSelect.innerHTML += `<option value="${s.id}" ${selected}>${s.nama}</option>`;
-          });
-        });
-    }
-
-    // Load filter options on init if lembaga is pre-selected
-    document.addEventListener('DOMContentLoaded', () => {
-      const selectedLembaga = document.getElementById('lembagaId').value;
-      if (selectedLembaga) {
-        loadKelasFilter(selectedLembaga);
-      }
-    });
-</script>
+<script src="/js/filter-kelas.js"></script>
 
 <script src="/js/preview_kwitansi.js"></script>
 <%- include('partials/footer') %>

@@ -1,9 +1,9 @@
 <%- include('partials/header') %>
-<%- include('partials/sidebar') %>
+<%- include('partials/super-admin-sidebar') %>
 
 <div class="w-full max-w-2xl mx-auto">
   <div class="mb-6 flex items-center gap-4">
-    <a href="/users" class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
+    <a href="/super-admin/users" class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
       <i class="bi bi-arrow-left"></i>
     </a>
     <div>
@@ -13,7 +13,7 @@
   </div>
 
   <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-    <form action="<%= user ? '/users/edit/' + user.id : '/users/create' %>" method="POST" class="p-6 md:p-8 space-y-6">
+    <form action="<%= user ? '/super-admin/users/edit/' + user.id : '/super-admin/users/create' %>" method="POST" class="p-6 md:p-8 space-y-6">
       
       <%- include('components/input_field', {
         id: 'nama_lengkap',
@@ -35,8 +35,9 @@
 
       <% 
         const roleOptionsHTML = `
-          <option value="Admin" ${user && user.role === 'Admin' ? 'selected' : ''}>Admin (Akses Penuh)</option>
-          <option value="Staf" ${(!user || (user && user.role === 'Staf')) ? 'selected' : ''}>Staf (Akses Input & Laporan)</option>
+          <option value="Super Admin" ${user && user.role === 'Super Admin' ? 'selected' : ''}>Super Admin (Sistem & Akses)</option>
+          <option value="Admin" ${user && user.role === 'Admin' ? 'selected' : ''}>Admin (Akses Penuh Tagihan & Laporan)</option>
+          <option value="Staf" ${(!user || (user && user.role === 'Staf')) ? 'selected' : ''}>Staf (Akses Input Data)</option>
         `;
       %>
       <%- include('components/select_field', {
@@ -59,7 +60,7 @@
       }) %>
 
       <%- include('components/form_actions', {
-        backUrl: '/users',
+        backUrl: '/super-admin/users',
         submitText: '<i class="bi bi-save mr-1"></i> Simpan'
       }) %>
       

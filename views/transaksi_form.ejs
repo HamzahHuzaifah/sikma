@@ -20,7 +20,7 @@
       <i class="bi bi-pencil-square text-indigo-500"></i> Form Catat Transaksi
     </h2>
 
-    <form action="/transaksi" method="POST" id="transactionForm" class="space-y-6">
+    <form action="/admin/transaksi" method="POST" id="transactionForm" class="space-y-6">
       
       <!-- Top Row: Date & Lembaga -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -76,15 +76,25 @@
             onChange: 'handleKelasChange(this.value)',
             optionsHTML: '<option value="">-- Pilih Kelas --</option>'
           }) %>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Dropdown Santri -->
           <%- include('components/select_field', {
             id: 'santriId_tagihan',
             label: 'Nama Santri',
             name: 'santriId_tagihan',
+            onChange: 'handleSantriChange(this.value)',
             optionsHTML: '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>'
+          }) %>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <!-- Dropdown Tagihan -->
+          <%- include('components/select_field', {
+            id: 'tagihanId_tagihan',
+            label: 'Pilih Tagihan',
+            name: 'tagihanId_tagihan',
+            onChange: 'handleTagihanSelectChange(this)',
+            optionsHTML: '<option value="">-- Pilih Santri Terlebih Dahulu --</option>'
           }) %>
 
           <!-- Metode Pembayaran -->
@@ -374,7 +384,7 @@
       <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
         <i class="bi bi-clock-history text-indigo-500"></i> Transaksi Terbaru (10 Terakhir)
       </h2>
-      <a href="/laporan" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+      <a href="/admin/laporan" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
         Lihat Semua Laporan <i class="bi bi-arrow-right"></i>
       </a>
     </div>
@@ -390,6 +400,7 @@
             <th class="py-4 px-6 filterable" data-column="jenis" data-options="Pemasukan,Pengeluaran">Jenis</th>
             <th class="py-4 px-6 filterable" data-column="nominal">Nominal</th>
             <th class="py-4 px-6">Metode</th>
+            <th class="py-4 px-6 filterable" data-column="operator">Operator</th>
             <th class="py-4 px-6 text-center">Aksi</th>
           </tr>
         </thead>
@@ -463,11 +474,19 @@
                     <%= metodeVal %>
                   </span>
                 </td>
+                <td class="py-4 px-6 text-xs font-semibold text-slate-700">
+                  <div class="flex items-center gap-1.5">
+                    <div class="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 uppercase">
+                      <%= (t.user && t.user.nama_lengkap) ? t.user.nama_lengkap.substring(0, 2) : 'OP' %>
+                    </div>
+                    <%= (t.user && t.user.nama_lengkap) ? t.user.nama_lengkap : 'Operator' %>
+                  </div>
+                </td>
                 <td class="py-4 px-6 text-center flex items-center justify-center gap-1.5">
                   <% if (t.jenis === 'Pemasukan') { %>
                     <button 
                       type="button"
-                      onclick="toggleKwitansiPreview(this, '/lembaga/<%= getSlug(t.lembaga.nama) %>/kwitansi/<%= t.id %>?preview=1', 10)"
+                      onclick="toggleKwitansiPreview(this, '/admin/lembaga/<%= getSlug(t.lembaga.nama) %>/kwitansi/<%= t.id %>?preview=1', 10)"
                       class="inline-flex items-center justify-center p-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition shadow-sm"
                       title="Preview Kwitansi"
                     >
@@ -475,14 +494,14 @@
                     </button>
                   <% } %>
                   <a 
-                    href="/transaksi/edit/<%= t.id %>?redirectUrl=/transaksi/baru" 
+                    href="/admin/transaksi/edit/<%= t.id %>?redirectUrl=/admin/transaksi/baru" 
                     class="text-indigo-500 hover:text-indigo-700 p-1.5 rounded-lg hover:bg-indigo-50 transition duration-150"
                     title="Edit Transaksi"
                   >
                     <i class="bi bi-pencil-fill text-sm"></i>
                   </a>
-                  <form action="/transaksi/delete/<%= t.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data transaksi ini?');" class="inline">
-                    <input type="hidden" name="redirectUrl" value="/transaksi/baru">
+                  <form action="/admin/transaksi/delete/<%= t.id %>" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data transaksi ini?');" class="inline">
+                    <input type="hidden" name="redirectUrl" value="/admin/transaksi/baru">
                     <button type="submit" class="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition duration-150" title="Hapus Transaksi">
                       <i class="bi bi-trash3-fill text-sm"></i>
                     </button>

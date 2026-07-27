@@ -3,26 +3,29 @@
     <div>
       <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-3">Menu Utama</h3>
       <nav class="space-y-1">
-        <a id="nav-dashboard" href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+        <a id="nav-dashboard" href="/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
           <i class="bi bi-speedometer2 text-base"></i> Dashboard Gabungan
         </a>
-        <a id="nav-transaksi" href="/transaksi/baru" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+        <a id="nav-transaksi" href="/admin/transaksi/baru" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
           <i class="bi bi-plus-circle text-base"></i> Input Umum
         </a>
-        <a id="nav-laporan" href="/laporan" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+        <a id="nav-laporan" href="/admin/laporan" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
           <i class="bi bi-file-earmark-text text-base"></i> Laporan Semua
         </a>
-        <a id="nav-tabungan" href="/tabungan" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+        <a id="nav-tabungan" href="/admin/tabungan" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
           <i class="bi bi-piggy-bank text-base"></i> Laporan Tabungan
         </a>
-        <a id="nav-infak" href="/infak" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+        <a id="nav-infak" href="/admin/infak" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
           <i class="bi bi-heart text-base"></i> Laporan Infak Harian
         </a>
-        <a id="nav-santri" href="/lembaga/mjic/santri" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+        <a id="nav-santri" href="/admin/lembaga/madrasah/santri" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
           <i class="bi bi-people text-base"></i> Data Santri
         </a>
-        <a id="nav-tagihan" href="/tagihan" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
-          <i class="bi bi-tags text-base"></i> Data Tagihan
+        <a id="nav-tagihan" href="/admin/tagihan" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition <%= typeof title !== 'undefined' && title === 'Data Tagihan' ? 'bg-brand-50 text-brand-600' : '' %>">
+          <i class="bi bi-receipt text-base"></i> Data Tagihan
+        </a>
+        <a href="/admin/tunggakan" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition <%= typeof title !== 'undefined' && title === 'Data Tunggakan' ? 'bg-brand-50 text-brand-600' : '' %>">
+          <i class="bi bi-exclamation-square text-base"></i> Data Tunggakan
         </a>
       </nav>
     </div>
@@ -33,8 +36,11 @@
     <div>
       <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-3">Integrasi</h3>
       <nav class="space-y-1">
-        <a id="nav-import" href="/import" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
+        <a id="nav-import" href="/admin/import" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
           <i class="bi bi-database-fill-down text-base"></i> Tarik Data (SPMB)
+        </a>
+        <a id="nav-sso-spmb" href="/sso/go-spmb" target="_blank" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 transition mt-2">
+          <i class="bi bi-box-arrow-up-right text-base"></i> Buka Web SPMB
         </a>
       </nav>
     </div>

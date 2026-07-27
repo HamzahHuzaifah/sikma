@@ -19,7 +19,7 @@
         <button type="button" onclick="toggleEdit()" class="btn-print" id="btnEdit" style="background-color: #f59e0b; margin-left: 10px;">
             <i class="fas fa-edit"></i> Edit Data
         </button>
-        <a href="/lembaga/<%= slug %>/laporan" class="btn-back">Kembali ke Laporan</a>
+        <a href="/admin/lembaga/<%= slug %>/laporan" class="btn-back">Kembali ke Laporan</a>
         
         <div id="layoutControls" class="no-print" style="display: none; margin-top: 15px; padding: 10px; background: white; border-radius: 6px; border: 1px solid #ccc; width: 100%; flex-direction: column; align-items: center; gap: 10px;">
             <strong style="text-align: center; margin-bottom: 5px;">Geser Tata Letak:</strong>
@@ -242,7 +242,7 @@
 
     <script>
         window.KwitansiConfig = {
-            saveUrl: '/lembaga/<%= slug %>/kwitansi-edit/<%= transaction.id %>',
+            saveUrl: '/admin/lembaga/<%= slug %>/kwitansi-edit/<%= transaction.id %>',
             marginTop: parseFloat('<%= layoutMarginTop.replace("cm","") %>') || 6.5,
             marginLeft: parseFloat('<%= layoutMarginLeft.replace("cm","") %>') || 2.5,
             ttdVisible: <%= ttdVisible %>,

@@ -72,7 +72,8 @@ module.exports = {
           { model: Kategori, as: 'kategori' },
           { model: Kelas, as: 'kelas' },
           { model: Santri, as: 'santri' },
-          { model: Tagihan, as: 'tagihan' }
+          { model: Tagihan, as: 'tagihan' },
+          { model: User, as: 'user', attributes: ['nama_lengkap'] }
         ],
         order: order,
         subQuery: false
@@ -160,7 +161,7 @@ module.exports = {
     const santriId = parseSingleId(santriId_tagihan || santriId_tabungan || req.body.santriId);
     const globalLembagaId = parseSingleId(lembagaId_global);
 
-    const defaultRedirect = '/transaksi/baru';
+    const defaultRedirect = '/admin/transaksi/baru';
     const redirectBase = redirectUrl || defaultRedirect;
     const separator = redirectBase.includes('?') ? '&' : '?';
 
@@ -177,8 +178,8 @@ module.exports = {
         userId: req.session.userId
       };
 
-      if (jenisTransaksi.startsWith('tagihan_')) {
-        const tagihanId = parseInt(jenisTransaksi.split('_')[1]);
+      if (jenisTransaksi === 'pembayaran_tagihan') {
+        const tagihanId = parseInt(req.body.tagihanId_tagihan);
         const tagihan = await Tagihan.findByPk(tagihanId);
         if (!tagihan) {
           return res.redirect(`${redirectBase}${separator}error=Tagihan tidak ditemukan!`);
@@ -291,7 +292,7 @@ module.exports = {
           return res.redirect(`${redirectBase}${separator}error=Tidak ada santri yang dipilih untuk transaksi Tabungan!`);
         }
 
-        const tabunganPromises = [];
+        let createdCount = 0;
         for (let i = 0; i < santriIds.length; i++) {
           const sId = parseInt(santriIds[i], 10);
           const sNominal = parseInt(nominals[i], 10);
@@ -310,26 +311,23 @@ module.exports = {
               }
             }
 
-            tabunganPromises.push(
-              Tabungan.create({
-                tanggal,
-                tipe,
-                nominal: sNominal,
-                lembagaId: globalLembagaId,
-                kelasId,
-                santriId: sId,
-                userId: req.session.userId,
-                keterangan: `Metode: ${req.body.metode_tabungan || 'Cash'}\nCatatan: ${req.body.catatan_tabungan || ''}`
-              })
-            );
+            await Tabungan.create({
+              tanggal,
+              tipe,
+              nominal: sNominal,
+              lembagaId: globalLembagaId,
+              kelasId,
+              santriId: sId,
+              userId: req.session.userId,
+              keterangan: `Metode: ${req.body.metode_tabungan || 'Cash'}\nCatatan: ${req.body.catatan_tabungan || ''}`
+            });
+            createdCount++;
           }
         }
 
-        if (tabunganPromises.length === 0) {
+        if (createdCount === 0) {
            return res.redirect(`${redirectBase}${separator}error=Tidak ada nominal tabungan yang diisi!`);
         }
-
-        await Promise.all(tabunganPromises);
 
         return res.redirect(`${redirectBase}${separator}success=Transaksi Tabungan massal berhasil disimpan!`);
       } else if (jenisTransaksi === 'infak_harian') {
@@ -609,7 +607,7 @@ module.exports = {
       if (startDate) queryStr += `&startDate=${startDate}`;
       if (endDate) queryStr += `&endDate=${endDate}`;
 
-      res.redirect(`/laporan${queryStr}`);
+      res.redirect(`/admin/laporan${queryStr}`);
     } catch (error) {
       console.error(error);
       res.status(500).send('Internal Server Error');
@@ -634,7 +632,7 @@ module.exports = {
       const lembaga = await Lembaga.findOne({ where: { nama: mapping.nama } });
       if (!lembaga) return res.redirect('/');
 
-      res.redirect(`/transaksi/baru?lembagaId=${lembaga.id}`);
+      res.redirect(`/admin/transaksi/baru?lembagaId=${lembaga.id}`);
     } catch (error) {
       console.error(error);
       res.status(500).send('Internal Server Error');
@@ -765,7 +763,7 @@ module.exports = {
 
       await transaction.update(updateData);
       
-      const defaultRedirect = '/laporan';
+      const defaultRedirect = '/admin/laporan';
       const redirectBase = redirectUrl || defaultRedirect;
       const separator = redirectBase.includes('?') ? '&' : '?';
       res.redirect(`${redirectBase}${separator}success=Transaksi berhasil diperbarui!`);
@@ -783,7 +781,7 @@ module.exports = {
 
       await transaction.destroy();
       
-      const redirectUrl = req.body.redirectUrl || '/laporan';
+      const redirectUrl = req.body.redirectUrl || '/admin/laporan';
       const separator = redirectUrl.includes('?') ? '&' : '?';
       res.redirect(`${redirectUrl}${separator}success=Transaksi berhasil dihapus!`);
     } catch (error) {
@@ -1042,10 +1040,45 @@ module.exports = {
         t.saldoAkhir = currentSaldo;
       });
 
-      // Manual Pagination
-      const totalItems = allTabungan.length;
+      // Group consecutive items by tanggal, kelas, tipe for Massal UI
+      const groupedTabungan = [];
+      let currentGroup = null;
+
+      allTabungan.forEach(t => {
+        const isGroupable = currentGroup 
+          && currentGroup.tanggal === t.tanggal 
+          && currentGroup.kelasId === t.kelasId 
+          && currentGroup.tipe === t.tipe 
+          && currentGroup.lembagaId === t.lembagaId
+          && Math.abs(new Date(t.createdAt).getTime() - new Date(currentGroup.lastCreatedAt).getTime()) < 60000;
+
+        if (isGroupable) {
+          currentGroup.items.push(t);
+          currentGroup.totalNominal += parseFloat(t.nominal);
+          currentGroup.saldoAkhir = t.saldoAkhir;
+          currentGroup.lastCreatedAt = t.createdAt;
+        } else {
+          currentGroup = {
+            isGroup: true,
+            tanggal: t.tanggal,
+            kelasId: t.kelasId,
+            tipe: t.tipe,
+            lembagaId: t.lembagaId,
+            lembaga: t.lembaga,
+            kelas: t.kelas,
+            totalNominal: parseFloat(t.nominal),
+            saldoAkhir: t.saldoAkhir,
+            lastCreatedAt: t.createdAt,
+            items: [t]
+          };
+          groupedTabungan.push(currentGroup);
+        }
+      });
+
+      // Manual Pagination based on Groups
+      const totalItems = groupedTabungan.length;
       const totalPages = Math.ceil(totalItems / limit);
-      const tabunganList = allTabungan.slice(offset, offset + limit);
+      const tabunganList = groupedTabungan.slice(offset, offset + limit);
 
       res.render('tabungan_laporan', {
         tabunganList,

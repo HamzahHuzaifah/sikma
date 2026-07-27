@@ -17,6 +17,7 @@ router.get('/kategori/:lembagaId', transactionController.apiGetKategori);
 router.get('/kelas/:lembagaId', transactionController.apiGetKelas);
 router.get('/santri/:kelasId', transactionController.apiGetSantri);
 router.get('/tagihan/lembaga/:lembagaId', tagihanController.apiGetTagihan);
+router.get('/tagihan/unpaid/:lembagaId/:santriId', tagihanController.apiGetUnpaidTagihan);
 
 // API Impor Data
 router.post('/import/excel', upload.single('excelFile'), importController.importExcel);

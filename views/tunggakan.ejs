@@ -1,0 +1,118 @@
+<%- include('partials/header') %>
+<%- include('partials/sidebar') %>
+
+<%- include('components/page_header', { 
+  title: 'Data Tunggakan', 
+  subtitle: 'Laporan santri yang belum melunasi tagihan (termasuk tagihan SPMB)'
+}) %>
+
+<div class="w-full">
+  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+    <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <i class="bi bi-exclamation-square-fill text-rose-500 text-lg"></i>
+          <h3 class="font-bold text-slate-700">Daftar Tunggakan</h3>
+        </div>
+        <span class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full"><%= totalItems %> Data</span>
+      </div>
+
+      <form action="" method="GET" class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+        <div class="relative w-full sm:w-56">
+          <input type="text" name="search_santrinama" value="<%= typeof queryParams !== 'undefined' && queryParams.search_santrinama ? queryParams.search_santrinama : '' %>" placeholder="Cari nama santri..." class="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+          <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        </div>
+        <div class="relative w-full sm:w-56">
+          <input type="text" name="search_tagihannama" value="<%= typeof queryParams !== 'undefined' && queryParams.search_tagihannama ? queryParams.search_tagihannama : '' %>" placeholder="Cari nama tagihan..." class="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+          <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        </div>
+        <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2 rounded-xl text-sm font-medium transition shadow-sm whitespace-nowrap hidden">
+          Cari
+        </button>
+      </form>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <th class="p-4 pl-6 filterable" data-column="santriNama">Nama Santri</th>
+            <th class="p-4 filterable" data-column="kelas" data-options="<%= filterOptions.kelas.join(',') %>">Kelas</th>
+            <th class="p-4 filterable" data-column="lembaga" data-options="<%= filterOptions.lembaga.join(',') %>">Lembaga</th>
+            <th class="p-4 filterable" data-column="source" data-options="<%= filterOptions.source.join(',') %>">Asal Tagihan</th>
+            <th class="p-4 filterable" data-column="tagihanNama">Nama Tagihan</th>
+            <th class="p-4 text-right filterable" data-column="nominalTagihan">Total Tagihan</th>
+            <th class="p-4 text-right filterable" data-column="sudahDibayar">Sudah Dibayar</th>
+            <th class="p-4 text-right filterable text-red-500" data-column="sisaTunggakan">Sisa Tunggakan</th>
+            <th class="p-4 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-sm">
+          <% if (laporanTunggakan.length === 0) { %>
+            <%- include('components/empty_state', {
+              colspan: 9,
+              icon: 'bi-check-circle',
+              message: 'Tidak ada tunggakan. Semua santri sesuai kriteria telah lunas.'
+            }) %>
+          <% } else { %>
+            <% laporanTunggakan.forEach(t => { %>
+              <tr class="hover:bg-slate-50/50 transition">
+                <td class="p-4 pl-6">
+                  <div class="font-semibold text-slate-800"><%= t.santriNama %></div>
+                </td>
+                <td class="p-4 text-slate-600 font-medium"><%= t.kelasNama %></td>
+                <td class="p-4 text-slate-500"><%= t.lembagaNama %></td>
+                <td class="p-4 text-center">
+                  <% if (t.source === 'SPMB') { %>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 uppercase tracking-wider">
+                      <i class="bi bi-cloud-download"></i> SPMB
+                    </span>
+                  <% } else { %>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 uppercase tracking-wider">
+                      <i class="bi bi-server"></i> SIKMA
+                    </span>
+                  <% } %>
+                </td>
+                <td class="p-4 text-slate-800 font-medium"><%= t.tagihanNama %></td>
+                <td class="p-4 text-right font-semibold text-slate-700">
+                  Rp <%= Number(t.nominalTagihan).toLocaleString('id-ID') %>
+                </td>
+                <td class="p-4 text-right font-semibold text-emerald-600">
+                  Rp <%= Number(t.sudahDibayar).toLocaleString('id-ID') %>
+                </td>
+                <td class="p-4 text-right font-bold text-rose-600 bg-rose-50/30">
+                  Rp <%= Number(t.sisaTunggakan).toLocaleString('id-ID') %>
+                </td>
+                <td class="p-4 text-center">
+                  <% if (t.source === 'SPMB') { %>
+                    <a href="http://localhost:5000/input-transaksi" target="_blank" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition">
+                      <i class="bi bi-wallet2"></i> Bayar
+                    </a>
+                  <% } else { %>
+                    <a href="/admin/transaksi/baru" class="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition">
+                      <i class="bi bi-wallet2"></i> Bayar
+                    </a>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    <% 
+        let queryStr = '';
+        if (typeof queryParams !== 'undefined') {
+          Object.keys(queryParams).forEach(key => {
+            if (key !== 'page' && key !== 'success' && key !== 'error') {
+              queryStr += `&${key}=${encodeURIComponent(queryParams[key])}`;
+            }
+          });
+        }
+    %>
+    <%- include('components/pagination', { currentPage, totalPages, totalItems, limit, queryStr }) %>
+  </div>
+</div>
+
+<script src="/js/table-filter.js"></script>
+<%- include('partials/footer') %>

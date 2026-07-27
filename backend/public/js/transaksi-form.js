@@ -87,13 +87,10 @@ function handleLembagaChange(lembagaId) {
   if (filteredTagihans.length > 0) {
     const optGroupTagihan = document.createElement('optgroup');
     optGroupTagihan.label = "Pembayaran Tagihan Santri";
-    filteredTagihans.forEach(t => {
-      const option = document.createElement('option');
-      option.value = `tagihan_${t.id}`;
-      option.setAttribute('data-nominal', Math.floor(t.nominal));
-      option.textContent = `Pembayaran ${t.nama}`;
-      optGroupTagihan.appendChild(option);
-    });
+    const option = document.createElement('option');
+    option.value = 'pembayaran_tagihan';
+    option.textContent = 'Pembayaran Tagihan Santri (SPP, dll)';
+    optGroupTagihan.appendChild(option);
     jenisTransaksiSelect.appendChild(optGroupTagihan);
   }
   
@@ -155,20 +152,22 @@ function handleJenisTransaksiChange(value) {
     const selectedLembagaId = document.getElementById('lembagaId_global').value;
     console.log("SIKMA: selectedLembagaId is:", selectedLembagaId);
 
-  if (value.startsWith('tagihan_')) {
+  if (value === 'pembayaran_tagihan') {
     sectionTagihan.classList.remove('hidden');
-    enableInputs(tagihanInputs, ['kelasId_tagihan', 'santriId_tagihan']);
+    enableInputs(tagihanInputs, ['tagihanId_tagihan', 'kelasId_tagihan', 'santriId_tagihan']);
     
     const globalNominalWrapper = document.getElementById('global_nominal_wrapper');
     if (globalNominalWrapper) globalNominalWrapper.classList.remove('hidden');
     nominalInput.setAttribute('required', 'true');
     nominalInput.disabled = false;
+    nominalInput.value = '';
 
-    // Auto fill nominal
-    const selectedOption = jenisTransaksiSelect.options[jenisTransaksiSelect.selectedIndex];
-    const nominal = selectedOption.getAttribute('data-nominal');
-
-    nominalInput.value = nominal || '0';
+    // Reset tagihan dropdown until a santri is selected
+    const tagihanSelect = document.getElementById('tagihanId_tagihan');
+    if (tagihanSelect) {
+      tagihanSelect.innerHTML = '<option value="">-- Pilih Santri Terlebih Dahulu --</option>';
+      tagihanSelect.disabled = true;
+    }
 
     // Load Kelas for this Lembaga
     loadKelasForTagihan(selectedLembagaId);
@@ -282,9 +281,51 @@ async function handleKelasChange(kelasId) {
       });
     }
     santriSelect.innerHTML = html;
+    
+    const tagihanSelect = document.getElementById('tagihanId_tagihan');
+    if (tagihanSelect) {
+      tagihanSelect.innerHTML = '<option value="">-- Pilih Santri Terlebih Dahulu --</option>';
+      tagihanSelect.disabled = true;
+      document.getElementById('nominal').value = '';
+    }
   } catch (err) {
     console.error(err);
     santriSelect.innerHTML = '<option value="">Gagal memuat santri</option>';
+  }
+}
+
+window.handleSantriChange = async function(santriId) {
+  const tagihanSelect = document.getElementById('tagihanId_tagihan');
+  if (!tagihanSelect) return;
+
+  if (!santriId) {
+    tagihanSelect.innerHTML = '<option value="">-- Pilih Santri Terlebih Dahulu --</option>';
+    tagihanSelect.disabled = true;
+    document.getElementById('nominal').value = '';
+    return;
+  }
+
+  tagihanSelect.innerHTML = '<option value="">Memuat Tagihan...</option>';
+  tagihanSelect.disabled = false;
+  document.getElementById('nominal').value = '';
+
+  try {
+    const lembagaId = document.getElementById('lembagaId_global').value;
+    const res = await fetch(`/api/tagihan/unpaid/${lembagaId}/${santriId}`);
+    const unpaidTagihans = await res.json();
+
+    let html = '<option value="">-- Pilih Tagihan --</option>';
+    if (unpaidTagihans.length === 0) {
+      html = '<option value="">Semua Tagihan Sudah Lunas!</option>';
+    } else {
+      unpaidTagihans.forEach(t => {
+        html += `<option value="${t.id}" data-nominal="${Math.floor(t.nominal)}">${t.nama} (Rp ${Number(t.nominal).toLocaleString('id-ID')})</option>`;
+      });
+    }
+    tagihanSelect.innerHTML = html;
+  } catch (err) {
+    console.error(err);
+    tagihanSelect.innerHTML = '<option value="">Gagal memuat tagihan</option>';
   }
 }
 
@@ -378,5 +419,15 @@ async function handleKelasChangeTabungan(kelasId) {
   } catch (err) {
     console.error(err);
     santriList.innerHTML = '<div class="text-red-500 bg-red-50 p-4 rounded-lg">Gagal memuat data santri. Silakan coba lagi.</div>';
+  }
+}
+
+window.handleTagihanSelectChange = function(selectElem) {
+  const selectedOption = selectElem.options[selectElem.selectedIndex];
+  if (selectedOption && selectedOption.value) {
+    const nominal = selectedOption.getAttribute('data-nominal');
+    document.getElementById('nominal').value = nominal || '0';
+  } else {
+    document.getElementById('nominal').value = '';
   }
 }
