@@ -8,16 +8,23 @@ cd /home/mjir4837/repositories/sikma || exit
 source /home/mjir4837/nodevenv/repositories/sikma/22/bin/activate
 
 # 3. Tarik kode terbaru dari GitHub
-echo "[1/3] Menarik kode terbaru dari GitHub..."
+echo "[1/4] Menarik kode terbaru dari GitHub..."
 git pull origin main
 
 # 4. Install dependencies jika ada paket baru
-echo "[2/3] Memeriksa & menginstall dependencies..."
+echo "[2/4] Memeriksa & menginstall dependencies..."
 npm install --production
 
-# 5. Memicu restart otomatis via Passenger cPanel
-echo "[3/3] Memicu restart server Passenger..."
-mkdir -p tmp
-touch tmp/restart.txt
+# 5. Cari dan matikan proses Node.js SIKMA lama
+echo "[3/4] Mematikan proses Node.js SIKMA lama..."
+PID=$(ps aux | grep "node app.js" | grep -v grep | awk '{print $2}')
+if [ ! -z "$PID" ]; then
+    echo "Mematikan PID: $PID"
+    kill -9 $PID
+fi
 
-echo "=== SUCCESS: Server SIKMA berhasil di-restart secara permanen! ==="
+# 6. Jalankan ulang server di background dengan disown
+echo "[4/4] Menyalakan server SIKMA di port 5001..."
+nohup node app.js > app.log 2>&1 & disown
+
+echo "=== SUCCESS: Server SIKMA berhasil di-restart dan aktif di port 5001! ==="
