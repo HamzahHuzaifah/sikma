@@ -17,14 +17,10 @@ npm install --production
 
 # 5. Cari dan matikan proses Node.js SIKMA lama
 echo "[3/4] Mematikan proses Node.js SIKMA lama..."
-PID=$(ps aux | grep "node app.js" | grep -v grep | awk '{print $2}')
-if [ ! -z "$PID" ]; then
-    echo "Mematikan PID: $PID"
-    kill -9 $PID
-fi
+pkill -f "node app.js --app=sikma"
 
 # 6. Jalankan ulang server di background dengan disown
 echo "[4/4] Menyalakan server SIKMA di port 5001..."
-nohup node app.js > app.log 2>&1 & disown
+nohup node app.js --app=sikma > app.log 2>&1 & disown
 
 echo "=== SUCCESS: Server SIKMA berhasil di-restart dan aktif di port 5001! ==="

@@ -93,7 +93,6 @@ module.exports = {
     
     try {
       let dataSantri = [];
-      let isSimulated = false;
 
       // Ambil lembaga untuk mapping
       const lembagas = await Lembaga.findAll();
@@ -110,20 +109,8 @@ module.exports = {
           dataSantri = response.data.data;
         }
       } catch (err) {
-        // Fallback Simulasi jika API offline / error CORS / local offline dev
-        console.log(`[API SPMB Fallback] Koneksi ke ${apiUrl} gagal. Menggunakan simulasi data.`);
-        isSimulated = true;
-        
-        // Buat dummy data registrasi dari spmb.mjic.sch.id
-        dataSantri = [
-          { nama: 'Achmad Dani', kelas: 'Kelas 1', lembaga: 'Madrasah' },
-          { nama: 'Siti Sarah Nurhaliza', kelas: 'Kelas 2', lembaga: 'Madrasah' },
-          { nama: 'Muhammad Rizky', kelas: 'Arafah (A)', lembaga: 'PAUDQu' },
-          { nama: 'Fatimah Az-Zahra', kelas: 'Jilid 1', lembaga: 'TPQ' },
-          { nama: 'Zulkifli Hasan', kelas: 'Jilid 2', lembaga: 'TPQ' },
-          { nama: 'Ali bin Abi Thalib', kelas: 'Kelas Awwal', lembaga: 'MDT' },
-          { nama: 'Utsman bin Affan', kelas: 'Kelas Awwal', lembaga: 'MDT' }
-        ];
+        console.error(`[API SPMB Error] Koneksi ke ${apiUrl} gagal:`, err.message);
+        return res.redirect('/import?error=Gagal terhubung ke server SPMB. Pastikan API URL benar dan server SPMB sedang online.');
       }
 
       let pulledCount = 0;
@@ -169,9 +156,7 @@ module.exports = {
         }
       }
 
-      const statusMsg = isSimulated 
-        ? `simulated=true&success=Koneksi ke SPMB Offline/Simulasi. Berhasil menarik ${pulledCount} data baru secara otomatis.`
-        : `success=Berhasil menarik ${pulledCount} data santri baru dari API SPMB secara real-time!`;
+      const statusMsg = `success=Berhasil menarik ${pulledCount} data santri baru dari API SPMB secara real-time!`;
 
       res.redirect(`/import?${statusMsg}`);
     } catch (error) {
