@@ -1,3 +1,4 @@
+const passengerPort = process.env.PORT;
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
@@ -17,7 +18,7 @@ const {
 const app = express();
 // PENTING: Trust Proxy agar rate-limit/session bisa membaca IP asli di balik reverse proxy cPanel
 app.set('trust proxy', 1);
-const PORT = process.env.PORT || 3000;
+const PORT = passengerPort || process.env.PORT || 3000;
 
 // Set EJS sebagai Template Engine
 app.set('view engine', 'ejs');
