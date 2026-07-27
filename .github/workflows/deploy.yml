@@ -1,0 +1,34 @@
+name: Deploy SIKMA to cPanel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Executing remote SSH commands to deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          cd /home/mjir4837/repositories/sikma
+          git reset --hard
+          git pull origin main
+          source /home/mjir4837/nodevenv/repositories/sikma/22/bin/activate
+          npm install --production
+          PID=$(ps aux | grep "node app.js" | grep -v grep | awk '{print $2}')
+          if [ ! -z "$PID" ]; then
+            kill -9 $PID
+          fi
+          nohup node app.js > app.log 2>&1 &
+          echo "Aplikasi SIKMA berhasil dimulai ulang di latar belakang."
