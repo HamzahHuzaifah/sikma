@@ -566,7 +566,25 @@ module.exports = {
   apiGetKelas: async (req, res) => {
     try {
       const { lembagaId } = req.params;
-      const kelas = await Kelas.findAll({ where: { lembagaId } });
+      const { hasSantri } = req.query;
+      
+      const queryOptions = { where: { lembagaId } };
+      
+      if (hasSantri === 'true') {
+        queryOptions.include = [{
+          model: Santri,
+          as: 'santri',
+          attributes: ['id']
+        }];
+      }
+      
+      const kelas = await Kelas.findAll(queryOptions);
+      
+      if (hasSantri === 'true') {
+        const kelasAktif = kelas.filter(k => k.santri && k.santri.length > 0);
+        return res.json(kelasAktif);
+      }
+      
       res.json(kelas);
     } catch (error) {
       res.status(500).json({ error: error.message });

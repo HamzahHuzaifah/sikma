@@ -19,6 +19,10 @@ module.exports = {
       const lembagas = await Lembaga.findAll();
       
       for (const lembaga of lembagas) {
+        if (lembaga.nama.toLowerCase().includes('madrasah')) {
+          continue; // Madrasah tidak perlu tagihan otomatis
+        }
+
         // Cek apakah tagihan SPP bulan ini sudah ada
         const existingTagihan = await Tagihan.findOne({
           where: {
@@ -39,7 +43,11 @@ module.exports = {
             order: [['createdAt', 'DESC']]
           });
           
-          const nominal = previousSPP ? previousSPP.nominal : 0;
+          let nominal = previousSPP ? previousSPP.nominal : 0;
+          
+          if (lembaga.nama.toLowerCase() === 'mdt') {
+            nominal = 150000;
+          }
           
           await Tagihan.create({
             nama: expectedName,

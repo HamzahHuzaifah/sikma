@@ -81,10 +81,14 @@ function handleLembagaChange(lembagaId) {
     return;
   }
   
+  const lembagaSelect = document.getElementById('lembagaId_global');
+  const lembagaName = lembagaSelect ? lembagaSelect.options[lembagaSelect.selectedIndex].text : '';
+  const isMadrasah = lembagaName.toLowerCase().includes('madrasah');
+
   // Filter tagihans for selected lembaga
   const filteredTagihans = allTagihans.filter(t => t.lembagaId == lembagaId);
   
-  if (filteredTagihans.length > 0) {
+  if (filteredTagihans.length > 0 && !isMadrasah) {
     const optGroupTagihan = document.createElement('optgroup');
     optGroupTagihan.label = "Pembayaran Tagihan Santri";
     const option = document.createElement('option');
@@ -93,10 +97,7 @@ function handleLembagaChange(lembagaId) {
     optGroupTagihan.appendChild(option);
     jenisTransaksiSelect.appendChild(optGroupTagihan);
   }
-  
-  const lembagaSelect = document.getElementById('lembagaId_global');
-  const lembagaName = lembagaSelect ? lembagaSelect.options[lembagaSelect.selectedIndex].text : '';
-  const isMadrasah = lembagaName.toLowerCase().includes('madrasah');
+
 
   const optGroupUmum = document.createElement('optgroup');
   optGroupUmum.label = "Transaksi Umum";
@@ -237,7 +238,7 @@ async function loadKelasForTagihan(lembagaId) {
   santriSelect.disabled = true;
 
   try {
-    const res = await fetch(`/api/kelas/${lembagaId}`);
+    const res = await fetch(`/api/kelas/${lembagaId}?hasSantri=true`);
     const kelasList = await res.json();
 
     let html = '<option value="">-- Pilih Kelas --</option>';
@@ -338,7 +339,7 @@ async function loadKelasForTabungan(lembagaId) {
   santriList.innerHTML = 'Pilih kelas terlebih dahulu untuk melihat daftar santri.';
 
   try {
-    const res = await fetch(`/api/kelas/${lembagaId}`);
+    const res = await fetch(`/api/kelas/${lembagaId}?hasSantri=true`);
     const kelasData = await res.json();
 
     let html = '<option value="">-- Pilih Kelas --</option>';
