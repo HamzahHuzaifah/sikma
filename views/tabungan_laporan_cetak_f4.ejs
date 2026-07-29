@@ -26,6 +26,13 @@
         </div>
         <% } %>
 
+        <div style="display:flex; align-items:center; gap: 10px; background: white; padding: 5px 15px; border-radius: 6px; border: 1px solid #ccc;">
+            <label style="font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                <input type="checkbox" id="toggleTtdManajemen" onchange="toggleManajemenTTD()" checked>
+                Tampilkan TTD Manajemen JIC
+            </label>
+        </div>
+
         <div id="layoutControlsLaporan" class="no-print" style="display: none; margin-top: 15px; padding: 10px; background: white; border-radius: 6px; border: 1px solid #ccc; width: 100%; justify-content: center; gap: 10px; flex-wrap: wrap;">
             <strong style="width: 100%; text-align: center; margin-bottom: 5px;">Geser Tata Letak:</strong>
             <button type="button" onclick="moveLaporanLayout(0, -10)" class="btn-print" style="padding: 5px 10px; background-color: #475569; width: 45%;"><i class="fas fa-arrow-up"></i> Naik</button>
@@ -69,7 +76,7 @@
                         }
                     %>
                     <div style="text-align: center; margin-bottom: 15px;">
-                        <h3 style="margin: 0; font-size: 12pt; text-transform: uppercase;">LAPORAN TABUNGAN SANTRI <%= lembagaNama %></h3>
+                        <h3 style="margin: 0; font-size: 12pt; text-transform: uppercase;">LAPORAN TABUNGAN SANTRI</h3>
                         <h4 style="margin: 5px 0 0 0; font-size: 11pt;" id="previewTahunJudul" contenteditable="false" spellcheck="false">TAHUN PELAJARAN <%= selTahun %>/<%= parseInt(selTahun) + 1 %></h4>
                         <% 
                             let periodeLabel = 'Semua Bulan';
@@ -159,42 +166,18 @@
                             <div style="display: flex; justify-content: space-between;">
                                 <div style="text-align: left; width: 250px;">
                                     <p style="margin: 0; visibility: hidden;">&nbsp;</p>
-                                    <p style="margin: 0;">Ketua Panitia</p>
-                                    <p style="margin: 0;">SPMB Madrasah JIC</p>
+                                    <p style="margin: 0;">Kepala Madrasah</p>
+                                    <p style="margin: 0;">Jakarta Islamic Centre</p>
                                     <br><br><br>
-                                    <p style="margin: 0; font-weight: bold; text-decoration: underline;" contenteditable="false" spellcheck="false">Hamzah Huzaifah</p>
+                                    <p style="margin: 0; font-weight: bold; text-decoration: underline;" contenteditable="false" spellcheck="false">Uwesy Faroqi, S.Ag.</p>
                                 </div>
                                 <div style="text-align: left; width: 175px;">
                                     <p style="margin: 0 0 5px 0; white-space: nowrap;">Jakarta, <span contenteditable="false" spellcheck="false"><%= new Date().getDate() %> <%= namaBulan %> <%= selTahun %></span></p>
                                     <p style="margin: 0; white-space: nowrap;">Bendahara</p>
-                                    <p style="margin: 0; white-space: nowrap;">SPMB Madrasah JIC</p>
+                                    <p style="margin: 0; white-space: nowrap;">Madrasah JIC</p>
                                     <br><br><br>
                                     <p style="margin: 0; font-weight: bold; text-decoration: underline; white-space: nowrap;" contenteditable="false" spellcheck="false">Henny Maulida Putri, S.Pd.</p>
                                 </div>
-                            </div>
-                            <div style="text-align: center; margin-top: 15px;">
-                                <p style="margin: 0 0 10px 0;">Mengetahui,</p>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <div style="text-align: left; width: 250px;">
-                                        <p style="margin: 0;">Kepala Sub Divisi Pendidikan & Pelatihan</p>
-                                        <p style="margin: 0;">Jakarta Islamic Centre</p>
-                                        <br><br><br>
-                                        <p style="margin: 0; font-weight: bold; text-decoration: underline; white-space: nowrap;" contenteditable="false" spellcheck="false">Arief Rahman Hakim, S.Sos, M.Ag.</p>
-                                    </div>
-                                    <div style="text-align: left; width: 175px;">
-                                        <p style="margin: 0; white-space: nowrap;">Kepala Madrasah</p>
-                                        <p style="margin: 0; white-space: nowrap;">Jakarta Islamic Centre</p>
-                                        <br><br><br>
-                                        <p style="margin: 0; font-weight: bold; text-decoration: underline; white-space: nowrap;" contenteditable="false" spellcheck="false">Uwesy Faroqi, S.Ag.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="text-align: center; padding-bottom: 20px; margin-top: 15px;">
-                                <p style="margin: 0;">Menyetujui,</p>
-                                <p style="margin: 0;">Kepala Divisi Pengkajian & Pelatihan</p>
-                                <p style="margin: 0;">Jakarta Islamic Centre</p>
-                                <br><br><br>
-                                <p style="margin: 0; font-weight: bold; text-decoration: underline;" contenteditable="false" spellcheck="false">Dr. Ir. K.H. Rasyidi HY, S.H., M.M., M.A., CPA. C.Med.</p>
                             </div>
                         </div>
 
@@ -238,6 +221,24 @@
                             </div>
                         </div>
 
+                        <!-- ================= TTD MANAJEMEN JIC ================= -->
+                        <div id="ttd-manajemen-layer" style="display: block;">
+                            <div style="text-align: center; margin-top: 25px;">
+                                <p style="margin: 0 0 10px 0;">Mengetahui,</p>
+                                <p style="margin: 0;">Kepala Sub Divisi Pendidikan & Pelatihan</p>
+                                <p style="margin: 0;">Jakarta Islamic Centre</p>
+                                <br><br><br>
+                                <p style="margin: 0; font-weight: bold; text-decoration: underline;" contenteditable="false" spellcheck="false">Arief Rahman Hakim, S.Sos, M.Ag.</p>
+                            </div>
+                            <div style="text-align: center; padding-bottom: 20px; margin-top: 15px;">
+                                <p style="margin: 0;">Menyetujui,</p>
+                                <p style="margin: 0;">Kepala Divisi Pengkajian & Pelatihan</p>
+                                <p style="margin: 0;">Jakarta Islamic Centre</p>
+                                <br><br><br>
+                                <p style="margin: 0; font-weight: bold; text-decoration: underline;" contenteditable="false" spellcheck="false">Dr. Ir. K.H. Rasyidi HY, S.H., M.M., M.A., CPA. C.Med.</p>
+                            </div>
+                        </div>
+
                     </div>
                             </td></tr>
                         </tbody>
@@ -256,6 +257,11 @@
             document.querySelectorAll('.ttd-block').forEach(el => el.style.display = 'none');
             const target = document.getElementById('ttd-' + val);
             if (target) target.style.display = 'block';
+        }
+
+        function toggleManajemenTTD() {
+            const isChecked = document.getElementById('toggleTtdManajemen').checked;
+            document.getElementById('ttd-manajemen-layer').style.display = isChecked ? 'block' : 'none';
         }
     </script>
 </body>

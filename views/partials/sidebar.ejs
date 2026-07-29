@@ -1,4 +1,7 @@
-<aside class="w-full md:w-64 flex-shrink-0 bg-white border border-slate-200 rounded-2xl p-5 print:hidden h-fit shadow-sm">
+<!-- Sidebar Backdrop (for Mobile) -->
+<div id="sidebarBackdrop" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-900/50 z-40 hidden opacity-0 transition-opacity duration-200 md:hidden print:hidden"></div>
+
+<aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out w-[280px] md:w-64 flex-shrink-0 bg-white border border-slate-200 rounded-r-2xl md:rounded-2xl p-5 print:hidden h-full md:h-fit shadow-2xl md:shadow-sm overflow-y-auto">
   <div class="space-y-6">
     <div>
       <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-3 mb-3">Menu Utama</h3>
@@ -21,8 +24,8 @@
         <a id="nav-santri" href="/admin/lembaga/madrasah/santri" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition">
           <i class="bi bi-people text-base"></i> Data Santri
         </a>
-        <a id="nav-tagihan" href="/admin/tagihan" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition <%= typeof title !== 'undefined' && title === 'Data Tagihan' ? 'bg-brand-50 text-brand-600' : '' %>">
-          <i class="bi bi-receipt text-base"></i> Data Tagihan
+        <a id="nav-tagihan" href="/admin/tagihan" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition <%= typeof title !== 'undefined' && title === 'Input Data Tagihan' ? 'bg-brand-50 text-brand-600' : '' %>">
+          <i class="bi bi-receipt text-base"></i> Input Data Tagihan
         </a>
         <a href="/admin/tunggakan" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition <%= typeof title !== 'undefined' && title === 'Data Tunggakan' ? 'bg-brand-50 text-brand-600' : '' %>">
           <i class="bi bi-exclamation-square text-base"></i> Data Tunggakan

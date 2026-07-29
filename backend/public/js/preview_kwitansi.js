@@ -41,3 +41,31 @@ function toggleKwitansiPreview(btn, url, colspan) {
         tr.parentNode.insertBefore(newTr, nextTr);
     }
 }
+
+function checkPreviewLaporan(baseUrl) {
+    const tahun = document.querySelector('input[name="tahun"]').value;
+    const bulan = document.querySelector('select[name="bulan"]').value;
+    
+    if (!tahun) {
+        alert('Silakan isi Tahun terlebih dahulu.');
+        return;
+    }
+    if (!bulan) {
+        alert('Silakan pilih Bulan terlebih dahulu.');
+        return;
+    }
+    
+    const lembagaId = document.querySelector('select[name="lembagaId"]').value;
+    const startDate = `${tahun}-${bulan.padStart(2, '0')}-01`;
+    const lastDay = new Date(tahun, bulan, 0).getDate();
+    const endDate = `${tahun}-${bulan.padStart(2, '0')}-${lastDay}`;
+    
+    let extraParams = '';
+    const kelasSelect = document.querySelector('select[name="kelasId"]');
+    if (kelasSelect) extraParams += `&kelasId=${kelasSelect.value}`;
+    const santriSelect = document.querySelector('select[name="santriId"]');
+    if (santriSelect) extraParams += `&santriId=${santriSelect.value}`;
+
+    const url = `${baseUrl}?startDate=${startDate}&endDate=${endDate}&lembagaId=${lembagaId}${extraParams}`;
+    openModalLaporan(url);
+}

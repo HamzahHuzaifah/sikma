@@ -104,7 +104,7 @@
       </a>
       <button 
         type="button" 
-        onclick="openModalLaporan('/admin/tabungan/cetak?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&lembagaId=<%= filters.lembagaId || '' %>&kelasId=<%= typeof filters !== 'undefined' && filters.kelasId ? filters.kelasId : '' %>&santriId=<%= typeof filters !== 'undefined' && filters.santriId ? filters.santriId : '' %>')"
+        onclick="checkPreviewLaporan('/admin/tabungan/cetak')"
         class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 px-4 rounded-xl border border-indigo-200 transition text-sm flex items-center gap-1.5"
       >
         <i class="bi bi-printer-fill"></i> Preview Laporan
