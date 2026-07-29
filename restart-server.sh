@@ -9,8 +9,15 @@ echo "[1/2] Menarik kode terbaru dari GitHub..."
 git reset --hard origin/main
 git pull origin main
 
-# 3. Trigger Phusion Passenger untuk merestart app secara graceful tanpa mengganggu app lain
-echo "[2/2] Merestart server via Passenger (tmp/restart.txt)..."
+echo "[2/2] Merestart server via Port 5001 (Sesuai Panduan Hybrid)..."
+# Mematikan proses node yang lama di port 5001
+kill -9 $(lsof -t -i:5001) 2>/dev/null || true
+killall node 2>/dev/null || true
+
+# Menjalankan proses Node.js baru di port 5001 di background
+PORT=5001 nohup node app.js > app.log 2>&1 & disown
+
+# Touch restart.txt hanya sebagai formalitas agar Passenger Cloudlinux tidak kill proses kita
 mkdir -p tmp
 touch tmp/restart.txt
 
