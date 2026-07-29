@@ -169,7 +169,19 @@
           const keteranganFormatted = (log.keterangan || '').replace(/\n/g, '<br>');
 
           const li = document.createElement('li');
-          li.className = 'p-4 hover:bg-slate-50 transition flex gap-4';
+          li.className = 'p-4 hover:bg-slate-50 transition flex gap-4 group';
+          
+          let deleteBtnHTML = '';
+          const isSuperAdmin = <%= (locals.user && locals.user.role === 'Super Admin') ? 'true' : 'false' %>;
+          
+          if (isSuperAdmin) {
+            deleteBtnHTML = `
+              <button onclick="deleteHistoryLog(${log.id})" class="opacity-0 group-hover:opacity-100 transition text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg" title="Hapus Riwayat">
+                <i class="bi bi-trash3-fill"></i>
+              </button>
+            `;
+          }
+
           li.innerHTML = `
             <div class="mt-1">
               <i class="bi ${icon} text-lg"></i>
@@ -181,7 +193,10 @@
                   ${aksiBadge}
                   <span class="text-xs font-semibold text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded">${log.modul}</span>
                 </div>
-                <span class="text-xs text-slate-400 font-medium whitespace-nowrap">${formatTimeAgo(log.createdAt)}</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-slate-400 font-medium whitespace-nowrap">${formatTimeAgo(log.createdAt)}</span>
+                  ${deleteBtnHTML}
+                </div>
               </div>
               <p class="text-sm text-slate-600 leading-relaxed">${keteranganFormatted}</p>
             </div>
@@ -197,6 +212,27 @@
       empty.classList.remove('hidden');
       empty.querySelector('h4').textContent = 'Gagal memuat data';
       empty.querySelector('p').textContent = 'Terjadi kesalahan jaringan atau server.';
+    }
+  }
+
+  async function deleteHistoryLog(id) {
+    if (!confirm('Apakah Anda yakin ingin menghapus riwayat aktivitas ini?')) return;
+    
+    try {
+      const res = await fetch(`/admin/api/log-history/${id}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        // Refresh list
+        fetchHistoryLogs(currentHistoryPage);
+      } else {
+        alert(data.message || 'Gagal menghapus riwayat');
+      }
+    } catch (error) {
+      console.error('Error deleting log:', error);
+      alert('Terjadi kesalahan saat menghubungi server');
     }
   }
 </script>

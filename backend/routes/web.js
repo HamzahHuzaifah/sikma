@@ -43,6 +43,7 @@ adminRouter.get('/lembaga/:slug/dashboard', dashboardController.getLembagaDashbo
 adminRouter.post('/api/admin/heartbeat', authController.postHeartbeat);
 const logController = require('../controllers/logController');
 adminRouter.get('/api/log-history', logController.getLogs);
+adminRouter.delete('/api/log-history/:id', logController.deleteLog);
 
 // Portal Lembaga Lainnya
 adminRouter.get('/lembaga/:slug/laporan', transactionController.getLembagaLaporan);
