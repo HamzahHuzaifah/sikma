@@ -8,7 +8,7 @@
         <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
           <i class="bi bi-clock-history text-brand-600"></i> Riwayat Aktivitas Admin
         </h3>
-        <p class="text-xs text-slate-500 mt-1">Menampilkan 100 aktivitas terakhir yang dilakukan di SIKMA.</p>
+        <p class="text-xs text-slate-500 mt-1">Menampilkan riwayat aktivitas yang dilakukan di SIKMA.</p>
       </div>
       <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-rose-500 transition focus:outline-none p-1 rounded-lg hover:bg-rose-50">
         <i class="bi bi-x-lg text-xl"></i>
@@ -16,33 +16,50 @@
     </div>
 
     <!-- Modal Body (Scrollable) -->
-    <div class="p-0 overflow-y-auto flex-1 relative bg-slate-50/30" id="historyLogContainer">
-      <!-- Loading State -->
-      <div id="historyLoading" class="flex flex-col items-center justify-center py-12">
-        <div class="relative w-10 h-10 mb-4">
-          <div class="absolute inset-0 rounded-full border-4 border-slate-200 border-t-brand-500 animate-spin"></div>
+    <div class="p-0 flex flex-col flex-1 relative bg-slate-50/30 overflow-hidden" id="historyLogContainer">
+      <div class="overflow-y-auto flex-1 p-0">
+        <!-- Loading State -->
+        <div id="historyLoading" class="flex flex-col items-center justify-center py-12">
+          <div class="relative w-10 h-10 mb-4">
+            <div class="absolute inset-0 rounded-full border-4 border-slate-200 border-t-brand-500 animate-spin"></div>
+          </div>
+          <span class="text-sm text-slate-500 font-medium">Memuat riwayat...</span>
         </div>
-        <span class="text-sm text-slate-500 font-medium">Memuat riwayat...</span>
+
+        <!-- Logs List -->
+        <ul id="historyList" class="hidden divide-y divide-slate-100">
+          <!-- Log items will be injected here via AJAX -->
+        </ul>
+
+        <!-- Empty State -->
+        <div id="historyEmpty" class="hidden flex flex-col items-center justify-center py-16 px-6 text-center">
+          <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-4">
+            <i class="bi bi-inbox text-3xl"></i>
+          </div>
+          <h4 class="font-bold text-slate-700">Belum ada aktivitas</h4>
+          <p class="text-sm text-slate-500 mt-1">Riwayat aktivitas admin akan muncul di sini.</p>
+        </div>
       </div>
-
-      <!-- Logs List -->
-      <ul id="historyList" class="hidden divide-y divide-slate-100">
-        <!-- Log items will be injected here via AJAX -->
-      </ul>
-
-      <!-- Empty State -->
-      <div id="historyEmpty" class="hidden flex flex-col items-center justify-center py-16 px-6 text-center">
-        <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-4">
-          <i class="bi bi-inbox text-3xl"></i>
+      
+      <!-- Pagination Footer -->
+      <div id="historyPagination" class="hidden p-4 border-t border-slate-100 bg-white flex items-center justify-between">
+        <span class="text-xs text-slate-500 font-medium" id="historyPageInfo">Halaman 1 dari 1</span>
+        <div class="flex gap-2">
+          <button id="historyPrevBtn" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed">
+            <i class="bi bi-chevron-left"></i> Prev
+          </button>
+          <button id="historyNextBtn" class="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed">
+            Next <i class="bi bi-chevron-right"></i>
+          </button>
         </div>
-        <h4 class="font-bold text-slate-700">Belum ada aktivitas</h4>
-        <p class="text-sm text-slate-500 mt-1">Riwayat aktivitas admin akan muncul di sini.</p>
       </div>
     </div>
   </div>
 </div>
 
 <script>
+  let currentHistoryPage = 1;
+
   function openHistoryModal() {
     const modal = document.getElementById('historyModal');
     const content = document.getElementById('historyModalContent');
@@ -55,7 +72,7 @@
       content.classList.add('scale-100');
     }, 10);
 
-    fetchHistoryLogs();
+    fetchHistoryLogs(1);
   }
 
   function closeHistoryModal() {
@@ -103,24 +120,43 @@
     }
   }
 
-  async function fetchHistoryLogs() {
+  async function fetchHistoryLogs(page = 1) {
     const loading = document.getElementById('historyLoading');
     const list = document.getElementById('historyList');
     const empty = document.getElementById('historyEmpty');
+    const pagination = document.getElementById('historyPagination');
 
     loading.classList.remove('hidden');
     list.classList.add('hidden');
     empty.classList.add('hidden');
+    pagination.classList.add('hidden');
     list.innerHTML = '';
 
     try {
-      const res = await fetch('/admin/api/log-history');
-      const data = await res.json();
+      const res = await fetch(`/admin/api/log-history?page=${page}&limit=10`);
+      const responseData = await res.json();
+      
+      const data = responseData.data || [];
+      const totalPages = responseData.totalPages || 1;
+      currentHistoryPage = responseData.currentPage || 1;
 
       loading.classList.add('hidden');
 
       if (data && data.length > 0) {
         list.classList.remove('hidden');
+        pagination.classList.remove('hidden');
+        
+        document.getElementById('historyPageInfo').textContent = `Halaman ${currentHistoryPage} dari ${totalPages}`;
+        
+        const prevBtn = document.getElementById('historyPrevBtn');
+        const nextBtn = document.getElementById('historyNextBtn');
+        
+        prevBtn.disabled = currentHistoryPage <= 1;
+        nextBtn.disabled = currentHistoryPage >= totalPages;
+        
+        prevBtn.onclick = () => fetchHistoryLogs(currentHistoryPage - 1);
+        nextBtn.onclick = () => fetchHistoryLogs(currentHistoryPage + 1);
+
         data.forEach(log => {
           const userName = log.user ? log.user.nama_lengkap : 'Sistem / Unknown';
           const aksiBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${getAksiStyle(log.aksi)}">${log.aksi}</span>`;
