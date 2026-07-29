@@ -1,5 +1,5 @@
-const { Op } = require('sequelize');
-const { Lembaga, Tagihan } = require('../models');
+const { Op, fn, col } = require('sequelize');
+const { Lembaga, Tagihan, Santri, Transaksi } = require('../models');
 const { catatLog } = require('../utils/logger');
 
 module.exports = {
@@ -56,7 +56,7 @@ module.exports = {
         order.push(['createdAt', 'DESC']);
       }
 
-      const { count: totalItems, rows: tagihans } = await Tagihan.findAndCountAll({
+      const { count: totalItems, rows: rawTagihans } = await Tagihan.findAndCountAll({
         where: whereClause,
         include: [
           { model: Lembaga, as: 'lembaga' }
@@ -66,6 +66,35 @@ module.exports = {
         offset,
         subQuery: false
       });
+
+      // Kalkulasi Progress Lunas secara dinamis
+      const tagihans = await Promise.all(rawTagihans.map(async (t) => {
+        const plainT = t.get({ plain: true });
+        
+        // Hitung total santri di lembaga ini
+        const totalSantri = await Santri.count({ where: { lembagaId: t.lembagaId } });
+        
+        if (totalSantri === 0) {
+          plainT.isLunas100 = false;
+          plainT.lunasProgress = '0/0';
+          return plainT;
+        }
+
+        // Hitung total transaksi per santri untuk tagihan ini
+        const transaksiSums = await Transaksi.findAll({
+          where: { tagihanId: t.id },
+          attributes: ['santriId', [fn('SUM', col('nominal')), 'totalPaid']],
+          group: ['santriId'],
+          raw: true
+        });
+
+        // Hitung berapa santri yang bayarnya >= nominal tagihan
+        const lunasCount = transaksiSums.filter(tx => parseFloat(tx.totalPaid) >= t.nominal).length;
+        
+        plainT.isLunas100 = (lunasCount >= totalSantri);
+        plainT.lunasProgress = `${lunasCount}/${totalSantri}`;
+        return plainT;
+      }));
 
       const totalPages = Math.ceil(totalItems / limit);
 

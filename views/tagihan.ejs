@@ -115,9 +115,19 @@
             }) %>
           <% } else { %>
             <% tagihans.forEach((tagihan, index) => { %>
-              <tr class="hover:bg-slate-50/50 transition">
+              <tr class="hover:bg-slate-50/50 transition <%= tagihan.isLunas100 ? 'bg-slate-50/50 opacity-70 grayscale-[20%]' : '' %>">
                 <td class="p-4 pl-6 text-center text-slate-400 font-semibold"><%= index + 1 %></td>
-                <td class="p-4 font-semibold text-slate-800"><%= tagihan.nama %></td>
+                <td class="p-4 font-semibold text-slate-800 flex flex-col gap-1 items-start">
+                  <div class="flex items-center gap-2">
+                    <%= tagihan.nama %>
+                    <% if(tagihan.isLunas100) { %>
+                      <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase flex items-center gap-1"><i class="bi bi-check-circle-fill"></i> LUNAS 100%</span>
+                    <% } %>
+                  </div>
+                  <% if(tagihan.lunasProgress && !tagihan.isLunas100) { %>
+                    <span class="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">Progress Lunas: <%= tagihan.lunasProgress %> Santri</span>
+                  <% } %>
+                </td>
                 <td class="p-4 text-slate-500"><%= tagihan.lembaga ? tagihan.lembaga.nama : '-' %></td>
                 <td class="p-4 text-slate-400 font-normal text-xs max-w-xs truncate"><%= tagihan.keterangan || '-' %></td>
                 <td class="p-4 text-right font-bold text-slate-700">Rp <%= Number(tagihan.nominal).toLocaleString('id-ID') %></td>
