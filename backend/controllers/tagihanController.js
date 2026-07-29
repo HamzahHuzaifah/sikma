@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const { Lembaga, Tagihan } = require('../models');
+const { catatLog } = require('../utils/logger');
 
 module.exports = {
   // Render Halaman Kelola Tagihan
