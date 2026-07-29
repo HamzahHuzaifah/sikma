@@ -56,14 +56,12 @@ module.exports = {
         order.push(['createdAt', 'DESC']);
       }
 
-      const { count: totalItems, rows: rawTagihans } = await Tagihan.findAndCountAll({
+      const rawTagihans = await Tagihan.findAll({
         where: whereClause,
         include: [
           { model: Lembaga, as: 'lembaga' }
         ],
         order: order,
-        limit,
-        offset,
         subQuery: false
       });
 
@@ -96,11 +94,21 @@ module.exports = {
         return plainT;
       }));
 
+      // Sort globally: Belum lunas first, Lunas at the bottom
+      tagihans.sort((a, b) => {
+        if (a.isLunas100 === b.isLunas100) return 0;
+        return a.isLunas100 ? 1 : -1;
+      });
+
+      const totalItems = tagihans.length;
       const totalPages = Math.ceil(totalItems / limit);
+      
+      // Slice array for pagination
+      const paginatedTagihans = tagihans.slice(offset, offset + limit);
 
       res.render('tagihan', {
         lembagas,
-        tagihans,
+        tagihans: paginatedTagihans,
         currentPage: page,
         totalPages,
         totalItems,
