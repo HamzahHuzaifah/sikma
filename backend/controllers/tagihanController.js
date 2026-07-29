@@ -105,6 +105,8 @@ module.exports = {
         keterangan: keterangan || ''
       });
 
+      await catatLog(req.session.userId, 'INPUT', 'Data Tagihan', `Membuat tagihan baru: ${nama} (Rp ${nominal})`);
+
       res.redirect('/admin/tagihan?success=Tagihan baru berhasil dibuat!');
     } catch (error) {
       console.error(error);
@@ -121,7 +123,11 @@ module.exports = {
         return res.redirect('/admin/tagihan?error=Tagihan tidak ditemukan!');
       }
 
+      const nama = tagihan.nama;
       await tagihan.destroy();
+      
+      await catatLog(req.session.userId, 'HAPUS', 'Data Tagihan', `Menghapus tagihan: ${nama}`);
+      
       res.redirect('/admin/tagihan?success=Tagihan berhasil dihapus!');
     } catch (error) {
       console.error(error);
@@ -206,6 +212,8 @@ module.exports = {
         lembagaId,
         keterangan: keterangan || ''
       });
+
+      await catatLog(req.session.userId, 'EDIT', 'Data Tagihan', `Mengubah tagihan: ${nama} (Rp ${nominal})`);
 
       res.redirect('/admin/tagihan?success=Aturan tagihan berhasil diperbarui!');
     } catch (error) {

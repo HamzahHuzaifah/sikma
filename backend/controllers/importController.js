@@ -1,6 +1,7 @@
 const xlsx = require('xlsx');
 const axios = require('axios');
 const { Op } = require('sequelize');
+const { catatLog } = require('../utils/logger');
 const { Lembaga, Kelas, Santri } = require('../models');
 
 module.exports = {
@@ -368,12 +369,15 @@ module.exports = {
       if (!santri) return res.status(404).send('Santri tidak ditemukan');
 
       const oldKelasId = santri.kelasId;
+      const namaLama = santri.nama;
 
       await santri.update({
         nama,
         kelasId: kelasId || null,
         lembagaId
       });
+
+      await catatLog(req.session.userId, 'EDIT', 'Data Santri', `Mengubah data santri: ${namaLama} menjadi ${nama}`);
 
       if (oldKelasId && oldKelasId != kelasId) {
         const count = await Santri.count({ where: { kelasId: oldKelasId } });
@@ -416,9 +420,12 @@ module.exports = {
       const slug = santri.lembaga ? (slugMap[santri.lembaga.nama] || 'mjic') : 'mjic';
 
       const kelasId = santri.kelasId;
+      const namaSantri = santri.nama;
 
       await santri.destroy();
       
+      await catatLog(req.session.userId, 'HAPUS', 'Data Santri', `Menghapus data santri: ${namaSantri}`);
+
       if (kelasId) {
         const count = await Santri.count({ where: { kelasId } });
         if (count === 0) {

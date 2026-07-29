@@ -8,6 +8,7 @@ const Transaksi = require('./Transaksi');
 const Tagihan = require('./Tagihan');
 const Tabungan = require('./Tabungan');
 const InfakHarian = require('./InfakHarian');
+const LogAktivitas = require('./LogAktivitas');
 
 // CATATAN: constraints: false digunakan agar Sequelize TIDAK membuat foreign key constraint
 // di level database MariaDB. Ini mencegah error "errno: 121 Duplicate key" di shared hosting cPanel
@@ -72,6 +73,9 @@ Tabungan.belongsTo(User, { foreignKey: 'userId', as: 'user', constraints: false 
 User.hasMany(InfakHarian, { foreignKey: 'userId', as: 'infakHarian', constraints: false });
 InfakHarian.belongsTo(User, { foreignKey: 'userId', as: 'user', constraints: false });
 
+User.hasMany(LogAktivitas, { foreignKey: 'userId', as: 'logAktivitas', constraints: false });
+LogAktivitas.belongsTo(User, { foreignKey: 'userId', as: 'user', constraints: false });
+
 module.exports = {
   sequelize,
   User,
@@ -82,5 +86,6 @@ module.exports = {
   Transaksi,
   Tagihan,
   Tabungan,
-  InfakHarian
+  InfakHarian,
+  LogAktivitas
 };

@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const { Lembaga, Kategori, Kelas, Santri, Transaksi, Tagihan, Tabungan, InfakHarian, User } = require('../models');
+const { catatLog } = require('../utils/logger');
 
 module.exports = {
   // Render Form Input Transaksi
@@ -272,6 +273,8 @@ module.exports = {
         await Transaksi.create(pengeluaranData);
         await Transaksi.create(pemasukanData);
         
+        await catatLog(req.session.userId, 'INPUT', 'Transaksi', `Setor Uang ke Madrasah sebesar Rp ${nominal}`);
+
         return res.redirect(`${redirectBase}${separator}success=Transaksi setor uang ke Madrasah berhasil disimpan!`);
 
       } else if (isTabungan) {
@@ -329,6 +332,8 @@ module.exports = {
            return res.redirect(`${redirectBase}${separator}error=Tidak ada nominal tabungan yang diisi!`);
         }
 
+        await catatLog(req.session.userId, 'INPUT', 'Tabungan', `Input Tabungan Massal untuk ${createdCount} santri (Tipe: ${tipe})`);
+
         return res.redirect(`${redirectBase}${separator}success=Transaksi Tabungan massal berhasil disimpan!`);
       } else if (jenisTransaksi === 'infak_harian') {
         if (!globalLembagaId) {
@@ -341,12 +346,17 @@ module.exports = {
           userId: req.session.userId,
           keterangan: `Catatan: ${req.body.catatan_infak || ''}`
         });
+
+        await catatLog(req.session.userId, 'INPUT', 'Infak Harian', `Input Infak Harian sebesar Rp ${nominal}`);
+
         return res.redirect(`${redirectBase}${separator}success=Transaksi Infak Harian berhasil disimpan!`);
       } else {
         return res.redirect(`${redirectBase}${separator}error=Jenis Transaksi tidak valid!`);
       }
 
       await Transaksi.create(insertData);
+
+      await catatLog(req.session.userId, 'INPUT', 'Transaksi', `Input Transaksi (Jenis: ${insertData.jenis}) sebesar Rp ${nominal}`);
 
       res.redirect(`${redirectBase}${separator}success=Transaksi berhasil disimpan!`);
     } catch (error) {
@@ -781,6 +791,8 @@ module.exports = {
 
       await transaction.update(updateData);
       
+      await catatLog(req.session.userId, 'EDIT', 'Transaksi', `Mengubah transaksi ID ${transaction.id} (Jenis: ${transaction.jenis})`);
+
       const defaultRedirect = '/admin/laporan';
       const redirectBase = redirectUrl || defaultRedirect;
       const separator = redirectBase.includes('?') ? '&' : '?';
@@ -797,8 +809,12 @@ module.exports = {
       const transaction = await Transaksi.findByPk(id);
       if (!transaction) return res.status(404).send('Transaksi tidak ditemukan');
 
+      const jenis = transaction.jenis;
+      const nominal = transaction.nominal;
       await transaction.destroy();
       
+      await catatLog(req.session.userId, 'HAPUS', 'Transaksi', `Menghapus transaksi (Jenis: ${jenis}, Nominal: Rp ${nominal})`);
+
       const redirectUrl = req.body.redirectUrl || '/admin/laporan';
       const separator = redirectUrl.includes('?') ? '&' : '?';
       res.redirect(`${redirectUrl}${separator}success=Transaksi berhasil dihapus!`);
@@ -1126,7 +1142,11 @@ module.exports = {
       const tabungan = await Tabungan.findByPk(id);
       if (!tabungan) return res.status(404).send('Data Tabungan tidak ditemukan');
 
+      const nominal = tabungan.nominal;
+      const tipe = tabungan.tipe;
       await tabungan.destroy();
+
+      await catatLog(req.session.userId, 'HAPUS', 'Tabungan', `Menghapus data Tabungan (${tipe}) sebesar Rp ${nominal}`);
 
       const redirectUrl = req.body.redirectUrl || '/tabungan';
       const separator = redirectUrl.includes('?') ? '&' : '?';
@@ -1231,7 +1251,10 @@ module.exports = {
       const infak = await InfakHarian.findByPk(id);
       if (!infak) return res.status(404).send('Data Infak tidak ditemukan');
 
+      const nominal = infak.nominal;
       await infak.destroy();
+
+      await catatLog(req.session.userId, 'HAPUS', 'Infak Harian', `Menghapus data Infak Harian sebesar Rp ${nominal}`);
 
       const redirectUrl = req.body.redirectUrl || '/infak';
       const separator = redirectUrl.includes('?') ? '&' : '?';

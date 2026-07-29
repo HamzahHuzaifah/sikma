@@ -39,8 +39,10 @@ adminRouter.get('/', dashboardController.getDashboard);
 adminRouter.get('/lembaga/:slug', (req, res) => res.redirect(`/admin/lembaga/${req.params.slug}/dashboard`));
 adminRouter.get('/lembaga/:slug/dashboard', dashboardController.getLembagaDashboard);
 
-// Heartbeat
+// Heartbeat & Logs
 adminRouter.post('/api/admin/heartbeat', authController.postHeartbeat);
+const logController = require('../controllers/logController');
+adminRouter.get('/api/log-history', logController.getLogs);
 
 // Portal Lembaga Lainnya
 adminRouter.get('/lembaga/:slug/laporan', transactionController.getLembagaLaporan);
