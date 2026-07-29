@@ -65,53 +65,56 @@
           </a>
         </div>
         
-        <!-- Online Users (Realtime) -->
-        <div class="hidden sm:flex items-center gap-2 mr-4" id="onlineUsersWrapper" style="display: none;">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Online</span>
-          <div class="flex -space-x-2" id="onlineUsersList">
-            <!-- Avatars will be injected here -->
-          </div>
-        </div>
-
-        <!-- History Button -->
-        <button onclick="openHistoryModal()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full font-semibold text-sm text-slate-600 transition shadow-sm mr-2 hidden sm:flex">
-          <i class="bi bi-clock-history text-brand-600"></i> History
-        </button>
-        <button onclick="openHistoryModal()" class="flex sm:hidden items-center justify-center w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-600 transition shadow-sm mr-2">
-          <i class="bi bi-clock-history text-brand-600 text-sm"></i>
-        </button>
-
-        <!-- User Profile Dropdown -->
-        <div class="relative flex items-center" id="profileDropdown">
-          <button onclick="toggleDropdown()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 pl-2 pr-4 py-1.5 rounded-full font-semibold text-sm text-slate-600 transition shadow-sm">
-            <% 
-              const name = locals.user ? locals.user.nama_lengkap : (locals.username || 'Admin');
-              const username = locals.user ? locals.user.username : 'admin';
-              const initial = name.charAt(0).toUpperCase();
-              
-              // Backend color hash identical to frontend
-              let hash = 0;
-              for (let i = 0; i < username.length; i++) {
-                  hash = username.charCodeAt(i) + ((hash << 5) - hash);
-              }
-              const colors = ['#e11d48', '#2563eb', '#059669', '#d97706', '#7c3aed', '#db2777', '#0891b2', '#ea580c'];
-              const color = colors[Math.abs(hash) % colors.length];
-            %>
-            <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background-color: <%= color %>">
-              <%= initial %>
+        <!-- Right Side Controls -->
+        <div class="flex items-center gap-3 sm:gap-4">
+          <!-- Online Users (Realtime) -->
+          <div class="hidden sm:flex items-center gap-2" id="onlineUsersWrapper" style="display: none;">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Online</span>
+            <div class="flex -space-x-2" id="onlineUsersList">
+              <!-- Avatars will be injected here -->
             </div>
-            <span><%= name %></span>
-            <i class="bi bi-chevron-down text-xs ml-1 text-slate-400"></i>
+          </div>
+
+          <!-- History Button -->
+          <button onclick="openHistoryModal()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full font-semibold text-sm text-slate-600 transition shadow-sm hidden sm:flex">
+            <i class="bi bi-clock-history text-brand-600"></i> History
           </button>
-          <!-- Dropdown Menu -->
-          <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-lg py-1 z-50">
-            <a class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-600 font-medium transition" href="/super-admin/users">
-              <i class="bi bi-person-badge"></i> Kelola Pengguna
-            </a>
-            <hr class="border-slate-100 my-1">
-            <a class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-semibold transition" href="/logout">
-              <i class="bi bi-box-arrow-right"></i> Keluar
-            </a>
+          <button onclick="openHistoryModal()" class="flex sm:hidden items-center justify-center w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-600 transition shadow-sm">
+            <i class="bi bi-clock-history text-brand-600 text-sm"></i>
+          </button>
+
+          <!-- User Profile Dropdown -->
+          <div class="relative flex items-center" id="profileDropdown">
+            <button onclick="toggleDropdown()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 pl-2 pr-4 py-1.5 rounded-full font-semibold text-sm text-slate-600 transition shadow-sm">
+              <% 
+                const name = locals.user ? locals.user.nama_lengkap : (locals.username || 'Admin');
+                const username = locals.user ? locals.user.username : 'admin';
+                const initial = name.charAt(0).toUpperCase();
+                
+                // Backend color hash identical to frontend
+                let hash = 0;
+                for (let i = 0; i < username.length; i++) {
+                    hash = username.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                const colors = ['#e11d48', '#2563eb', '#059669', '#d97706', '#7c3aed', '#db2777', '#0891b2', '#ea580c'];
+                const color = colors[Math.abs(hash) % colors.length];
+              %>
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background-color: <%= color %>">
+                <%= initial %>
+              </div>
+              <span><%= name %></span>
+              <i class="bi bi-chevron-down text-xs ml-1 text-slate-400"></i>
+            </button>
+            <!-- Dropdown Menu -->
+            <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-lg py-1 z-50 top-full">
+              <a class="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-600 font-medium transition" href="/super-admin/users">
+                <i class="bi bi-person-badge"></i> Kelola Pengguna
+              </a>
+              <hr class="border-slate-100 my-1">
+              <a class="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-semibold transition" href="/logout">
+                <i class="bi bi-box-arrow-right"></i> Keluar
+              </a>
+            </div>
           </div>
         </div>
       </div>
