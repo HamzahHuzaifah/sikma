@@ -73,7 +73,7 @@
     list.innerHTML = '';
 
     try {
-      const res = await fetch(`/admin/api/log-history?page=${page}&limit=10`);
+      const res = await fetch(`/admin/api/log-history?page=${page}&limit=10&_t=${Date.now()}`);
       const responseData = await res.json();
       
       const data = responseData.data || [];
@@ -116,7 +116,7 @@
           
           if (isSuperAdmin) {
             deleteBtnHTML = `
-              <button onclick="deleteHistoryLog(${log.id})" class="opacity-0 group-hover:opacity-100 transition text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg" title="Hapus Riwayat">
+              <button onclick="window.deleteHistoryLog(${log.id})" class="opacity-0 group-hover:opacity-100 transition text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg" title="Hapus Riwayat">
                 <i class="bi bi-trash3-fill"></i>
               </button>
             `;
@@ -155,7 +155,7 @@
     }
   }
 
-  async function deleteHistoryLog(id) {
+  window.deleteHistoryLog = async function(id) {
     if (!confirm('Apakah Anda yakin ingin menghapus riwayat aktivitas ini?')) return;
     
     try {
