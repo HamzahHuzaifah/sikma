@@ -41,12 +41,12 @@
     const diffInSeconds = Math.floor((now - date) / 1000);
     
     if (diffInSeconds < 60) return 'Baru saja';
-    if (diffInSeconds < 3600) return $([Math]::Floor( / 60)) mnt lalu;
-    if (diffInSeconds < 86400) return $([Math]::Floor( / 3600)) jam lalu;
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} mnt lalu`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} jam lalu`;
     
     const diffInDays = Math.floor(diffInSeconds / 86400);
     if (diffInDays === 1) return 'Kemarin';
-    if (diffInDays < 7) return $diffInDays hari lalu;
+    if (diffInDays < 7) return `${diffInDays} hari lalu`;
     
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   }
@@ -73,7 +73,7 @@
     list.innerHTML = '';
 
     try {
-      const res = await fetch(/admin/api/log-history?page= + page + &limit=10);
+      const res = await fetch(`/admin/api/log-history?page=${page}&limit=10`);
       const responseData = await res.json();
       
       const data = responseData.data || [];
@@ -86,7 +86,7 @@
         list.classList.remove('hidden');
         pagination.classList.remove('hidden');
         
-        document.getElementById('historyPageInfo').textContent = Halaman  + currentHistoryPage +  dari  + totalPages;
+        document.getElementById('historyPageInfo').textContent = `Halaman ${currentHistoryPage} dari ${totalPages}`;
         
         const prevBtn = document.getElementById('historyPrevBtn');
         const nextBtn = document.getElementById('historyNextBtn');
@@ -99,7 +99,7 @@
 
         data.forEach(log => {
           const userName = log.user ? log.user.nama_lengkap : 'Sistem / Unknown';
-          const aksiBadge = <span class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase  + getAksiStyle(log.aksi) + "> + log.aksi + </span>;
+          const aksiBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${getAksiStyle(log.aksi)}">${log.aksi}</span>`;
           
           let icon = 'bi-circle';
           if (log.aksi === 'INPUT') icon = 'bi-plus-circle text-emerald-500';
@@ -115,32 +115,32 @@
           const isSuperAdmin = window.IS_SUPER_ADMIN;
           
           if (isSuperAdmin) {
-            deleteBtnHTML = 
-              <button onclick="deleteHistoryLog( + log.id + )" class="opacity-0 group-hover:opacity-100 transition text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg" title="Hapus Riwayat">
+            deleteBtnHTML = `
+              <button onclick="deleteHistoryLog(${log.id})" class="opacity-0 group-hover:opacity-100 transition text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg" title="Hapus Riwayat">
                 <i class="bi bi-trash3-fill"></i>
               </button>
-            ;
+            `;
           }
 
-          li.innerHTML = 
+          li.innerHTML = `
             <div class="mt-1">
-              <i class="bi  + icon +  text-lg"></i>
+              <i class="bi ${icon} text-lg"></i>
             </div>
             <div class="flex-1">
               <div class="flex items-center justify-between gap-2 mb-1">
                 <div class="flex items-center gap-2">
-                  <span class="font-bold text-sm text-slate-700"> + userName + </span>
-                   + aksiBadge + 
-                  <span class="text-xs font-semibold text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded"> + log.modul + </span>
+                  <span class="font-bold text-sm text-slate-700">${userName}</span>
+                  ${aksiBadge}
+                  <span class="text-xs font-semibold text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded">${log.modul}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="text-xs text-slate-400 font-medium whitespace-nowrap"> + formatTimeAgo(log.createdAt) + </span>
-                   + deleteBtnHTML + 
+                  <span class="text-xs text-slate-400 font-medium whitespace-nowrap">${formatTimeAgo(log.createdAt)}</span>
+                  ${deleteBtnHTML}
                 </div>
               </div>
-              <p class="text-sm text-slate-600 leading-relaxed"> + keteranganFormatted + </p>
+              <p class="text-sm text-slate-600 leading-relaxed">${keteranganFormatted}</p>
             </div>
-          ;
+          `;
           list.appendChild(li);
         });
       } else {
@@ -159,12 +159,13 @@
     if (!confirm('Apakah Anda yakin ingin menghapus riwayat aktivitas ini?')) return;
     
     try {
-      const res = await fetch(/admin/api/log-history/ + id, {
+      const res = await fetch(`/admin/api/log-history/${id}`, {
         method: 'DELETE'
       });
       const data = await res.json();
       
       if (data.success) {
+        // Refresh list
         fetchHistoryLogs(currentHistoryPage);
       } else {
         alert(data.message || 'Gagal menghapus riwayat');
