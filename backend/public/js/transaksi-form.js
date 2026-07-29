@@ -320,7 +320,11 @@ window.handleSantriChange = async function(santriId) {
       html = '<option value="">Semua Tagihan Sudah Lunas!</option>';
     } else {
       unpaidTagihans.forEach(t => {
-        html += `<option value="${t.id}" data-nominal="${Math.floor(t.nominal)}">${t.nama} (Rp ${Number(t.nominal).toLocaleString('id-ID')})</option>`;
+        if (t.terbayar > 0) {
+          html += `<option value="${t.id}" data-nominal="${Math.floor(t.sisa)}">${t.nama} (Sisa Rp ${Number(t.sisa).toLocaleString('id-ID')})</option>`;
+        } else {
+          html += `<option value="${t.id}" data-nominal="${Math.floor(t.sisa)}">${t.nama} (Rp ${Number(t.sisa).toLocaleString('id-ID')})</option>`;
+        }
       });
     }
     tagihanSelect.innerHTML = html;

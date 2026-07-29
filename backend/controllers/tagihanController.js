@@ -149,7 +149,7 @@ module.exports = {
     }
   },
 
-  // API - Ambil daftar tagihan yang BELUM DIBAYAR oleh santri tertentu
+  // API - Ambil daftar tagihan yang BELUM DIBAYAR LUNAS oleh santri tertentu
   apiGetUnpaidTagihan: async (req, res) => {
     try {
       const { lembagaId, santriId } = req.params;
@@ -167,11 +167,28 @@ module.exports = {
             [Op.ne]: null
           }
         },
-        attributes: ['tagihanId']
+        attributes: ['tagihanId', 'nominal']
       });
 
-      const paidTagihanIds = paidTransactions.map(t => t.tagihanId);
-      const unpaidTagihans = tagihans.filter(t => !paidTagihanIds.includes(t.id));
+      // Calculate total terbayar for each tagihan
+      const paidMap = {};
+      paidTransactions.forEach(t => {
+        if (!paidMap[t.tagihanId]) {
+          paidMap[t.tagihanId] = 0;
+        }
+        paidMap[t.tagihanId] += Number(t.nominal);
+      });
+
+      // Filter only tagihans that have remaining balance (sisa > 0)
+      const unpaidTagihans = tagihans.map(t => {
+        const terbayar = paidMap[t.id] || 0;
+        const sisa = Number(t.nominal) - terbayar;
+        return {
+          ...t.toJSON(),
+          terbayar,
+          sisa
+        };
+      }).filter(t => t.sisa > 0);
       
       res.json(unpaidTagihans);
     } catch (error) {
