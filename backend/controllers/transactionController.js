@@ -180,24 +180,62 @@ module.exports = {
       };
 
       if (jenisTransaksi === 'pembayaran_tagihan') {
-        const tagihanId = parseInt(req.body.tagihanId_tagihan);
-        const tagihan = await Tagihan.findByPk(tagihanId);
-        if (!tagihan) {
-          return res.redirect(`${redirectBase}${separator}error=Tagihan tidak ditemukan!`);
+        let tagihanIds = req.body['tagihanId_tagihan[]'] || req.body.tagihanId_tagihan;
+        let nominals = req.body['nominal_tagihan[]'] || req.body.nominal_tagihan;
+
+        // Ensure arrays
+        if (!tagihanIds) {
+          return res.redirect(`${redirectBase}${separator}error=Pilih minimal satu tagihan untuk dibayar!`);
         }
+        if (!Array.isArray(tagihanIds)) tagihanIds = [tagihanIds];
+        if (!Array.isArray(nominals)) nominals = [nominals];
+
         if (!kelasId || !santriId) {
           return res.redirect(`${redirectBase}${separator}error=Untuk pembayaran tagihan, Kelas dan Nama Santri wajib diisi!`);
         }
-        
-        insertData.jenis = 'Pemasukan';
-        insertData.tagihanId = tagihanId;
-        insertData.lembagaId = tagihan.lembagaId;
-        insertData.kelasId = kelasId;
-        insertData.santriId = santriId;
-        
+
         const santri = await Santri.findByPk(santriId);
         const santriName = santri ? santri.nama : '';
-        insertData.keterangan = `Pembayaran: ${tagihan.nama}${santriName ? ' - ' + santriName : ''}\nMetode: ${metode_tagihan || 'Cash'}\nCatatan: ${catatan_tagihan || ''}`;
+
+        // Process each tagihan
+        let totalNominalDibayar = 0;
+        let insertedCount = 0;
+
+        for (let i = 0; i < tagihanIds.length; i++) {
+          const tId = parseInt(tagihanIds[i]);
+          const nom = parseFloat(nominals[i]);
+          
+          if (!tId || !nom || nom <= 0) continue;
+
+          const tagihan = await Tagihan.findByPk(tId);
+          if (!tagihan) continue;
+
+          const specificInsertData = {
+            tanggal,
+            nominal: nom,
+            kategoriId: null,
+            userId: req.session.userId,
+            jenis: 'Pemasukan',
+            tagihanId: tId,
+            lembagaId: tagihan.lembagaId,
+            kelasId: kelasId,
+            santriId: santriId,
+            keterangan: `Pembayaran: ${tagihan.nama}${santriName ? ' - ' + santriName : ''}\nMetode: ${req.body.metode_tagihan || 'Cash'}\nCatatan: ${req.body.catatan_tagihan || ''}`
+          };
+
+          await Transaksi.create(specificInsertData);
+          totalNominalDibayar += nom;
+          insertedCount++;
+        }
+
+        if (insertedCount === 0) {
+           return res.redirect(`${redirectBase}${separator}error=Tidak ada tagihan yang diproses, periksa input Anda!`);
+        }
+
+        await catatLog(req.session.userId, 'INPUT', 'Transaksi', `Input Pembayaran Multi-Tagihan (sebanyak ${insertedCount} tagihan) sebesar Rp ${totalNominalDibayar}`);
+        
+        return res.redirect(`${redirectBase}${separator}success=Berhasil menyimpan ${insertedCount} pembayaran tagihan sekaligus!`);
+
 
       } else if (jenisTransaksi === 'pemasukan_lain') {
         if (!uraianPemasukan || !diterimaDari || !pemberi || !globalLembagaId) {

@@ -155,19 +155,27 @@ function handleJenisTransaksiChange(value) {
 
   if (value === 'pembayaran_tagihan') {
     sectionTagihan.classList.remove('hidden');
-    enableInputs(tagihanInputs, ['tagihanId_tagihan', 'kelasId_tagihan', 'santriId_tagihan']);
+    enableInputs(tagihanInputs, ['kelasId_tagihan', 'santriId_tagihan']);
     
+    // Hide global nominal, because we use custom tagihan nominal total
     const globalNominalWrapper = document.getElementById('global_nominal_wrapper');
-    if (globalNominalWrapper) globalNominalWrapper.classList.remove('hidden');
-    nominalInput.setAttribute('required', 'true');
+    if (globalNominalWrapper) globalNominalWrapper.classList.add('hidden');
+    
+    // We still need the global nominal to be submitted for backend validation if necessary, 
+    // but the actual nominals are in nominal_tagihan[]. We'll update the global nominal via JS.
+    nominalInput.removeAttribute('required'); // Will be calculated dynamically
     nominalInput.disabled = false;
     nominalInput.value = '';
 
-    // Reset tagihan dropdown until a santri is selected
-    const tagihanSelect = document.getElementById('tagihanId_tagihan');
-    if (tagihanSelect) {
-      tagihanSelect.innerHTML = '<option value="">-- Pilih Santri Terlebih Dahulu --</option>';
-      tagihanSelect.disabled = true;
+    // Reset tagihan container until a santri is selected
+    const tagihanContainer = document.getElementById('tagihan_list_container');
+    const tagihanTotal = document.getElementById('tagihan_total_container');
+    if (tagihanContainer) {
+      tagihanContainer.innerHTML = '<div class="text-center py-4 text-sm text-slate-400">-- Pilih Santri Terlebih Dahulu --</div>';
+    }
+    if (tagihanTotal) {
+      tagihanTotal.classList.add('hidden');
+      document.getElementById('tagihan_total_display').textContent = 'Rp 0';
     }
 
     // Load Kelas for this Lembaga
@@ -283,11 +291,15 @@ async function handleKelasChange(kelasId) {
     }
     santriSelect.innerHTML = html;
     
-    const tagihanSelect = document.getElementById('tagihanId_tagihan');
-    if (tagihanSelect) {
-      tagihanSelect.innerHTML = '<option value="">-- Pilih Santri Terlebih Dahulu --</option>';
-      tagihanSelect.disabled = true;
+    const tagihanContainer = document.getElementById('tagihan_list_container');
+    const tagihanTotal = document.getElementById('tagihan_total_container');
+    if (tagihanContainer) {
+      tagihanContainer.innerHTML = '<div class="text-center py-4 text-sm text-slate-400">-- Pilih Santri Terlebih Dahulu --</div>';
       document.getElementById('nominal').value = '';
+    }
+    if (tagihanTotal) {
+      tagihanTotal.classList.add('hidden');
+      document.getElementById('tagihan_total_display').textContent = 'Rp 0';
     }
   } catch (err) {
     console.error(err);
@@ -296,43 +308,133 @@ async function handleKelasChange(kelasId) {
 }
 
 window.handleSantriChange = async function(santriId) {
-  const tagihanSelect = document.getElementById('tagihanId_tagihan');
-  if (!tagihanSelect) return;
+  const tagihanContainer = document.getElementById('tagihan_list_container');
+  const tagihanTotal = document.getElementById('tagihan_total_container');
+  if (!tagihanContainer) return;
 
   if (!santriId) {
-    tagihanSelect.innerHTML = '<option value="">-- Pilih Santri Terlebih Dahulu --</option>';
-    tagihanSelect.disabled = true;
+    tagihanContainer.innerHTML = '<div class="text-center py-4 text-sm text-slate-400">-- Pilih Santri Terlebih Dahulu --</div>';
     document.getElementById('nominal').value = '';
+    if (tagihanTotal) tagihanTotal.classList.add('hidden');
     return;
   }
 
-  tagihanSelect.innerHTML = '<option value="">Memuat Tagihan...</option>';
-  tagihanSelect.disabled = false;
+  tagihanContainer.innerHTML = '<div class="text-center py-4 text-sm text-indigo-500 animate-pulse">Memuat Daftar Tagihan...</div>';
   document.getElementById('nominal').value = '';
+  if (tagihanTotal) {
+    tagihanTotal.classList.add('hidden');
+    document.getElementById('tagihan_total_display').textContent = 'Rp 0';
+  }
 
   try {
     const lembagaId = document.getElementById('lembagaId_global').value;
     const res = await fetch(`/api/tagihan/unpaid/${lembagaId}/${santriId}`);
     const unpaidTagihans = await res.json();
 
-    let html = '<option value="">-- Pilih Tagihan --</option>';
     if (unpaidTagihans.length === 0) {
-      html = '<option value="">Semua Tagihan Sudah Lunas!</option>';
-    } else {
-      unpaidTagihans.forEach(t => {
-        if (t.terbayar > 0) {
-          html += `<option value="${t.id}" data-nominal="${Math.floor(t.sisa)}">${t.nama} (Sisa Rp ${Number(t.sisa).toLocaleString('id-ID')})</option>`;
-        } else {
-          html += `<option value="${t.id}" data-nominal="${Math.floor(t.sisa)}">${t.nama} (Rp ${Number(t.sisa).toLocaleString('id-ID')})</option>`;
-        }
-      });
+      tagihanContainer.innerHTML = '<div class="text-center py-4 text-sm text-emerald-600 font-bold bg-emerald-50 rounded-lg">Semua Tagihan Santri Ini Sudah Lunas! 🎉</div>';
+      return;
     }
-    tagihanSelect.innerHTML = html;
+
+    let html = `
+      <div class="mb-3 pb-3 border-b border-slate-100 flex justify-between items-center">
+        <span class="text-xs font-semibold text-slate-500">Daftar Tagihan Belum Lunas</span>
+        <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-indigo-600 hover:text-indigo-800 transition">
+          <input type="checkbox" id="selectAllTagihan" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+          Pilih Semua
+        </label>
+      </div>
+      <div class="space-y-3">
+    `;
+
+    unpaidTagihans.forEach((t, index) => {
+      const sisa = Math.floor(t.sisa);
+      const isCicil = t.terbayar > 0;
+      const sisaText = isCicil ? `(Sisa Rp ${Number(sisa).toLocaleString('id-ID')})` : `(Rp ${Number(sisa).toLocaleString('id-ID')})`;
+      const badgeHTML = isCicil ? `<span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded uppercase">Mencicil</span>` : '';
+
+      html += `
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition">
+          <label class="flex items-start sm:items-center gap-3 cursor-pointer flex-1">
+            <input type="checkbox" name="tagihanId_tagihan[]" value="${t.id}" class="tagihan-checkbox mt-1 sm:mt-0 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-5 h-5 transition">
+            <div class="flex flex-col">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-slate-700">${t.nama}</span>
+                ${badgeHTML}
+              </div>
+              <span class="text-xs font-semibold text-slate-500">${sisaText}</span>
+            </div>
+          </label>
+          <div class="w-full sm:w-1/3 flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-400">Rp</span>
+            <input type="number" name="nominal_tagihan[]" value="${sisa}" min="1" max="${sisa}" class="tagihan-nominal-input w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition duration-150" disabled>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += `</div>`;
+    tagihanContainer.innerHTML = html;
+    
+    if (tagihanTotal) tagihanTotal.classList.remove('hidden');
+    
+    attachTagihanListeners();
+
   } catch (err) {
     console.error(err);
-    tagihanSelect.innerHTML = '<option value="">Gagal memuat tagihan</option>';
+    tagihanContainer.innerHTML = '<div class="text-center py-4 text-sm text-rose-500 bg-rose-50 rounded-lg">Gagal memuat tagihan.</div>';
   }
 }
+
+function attachTagihanListeners() {
+  const selectAll = document.getElementById('selectAllTagihan');
+  const checkboxes = document.querySelectorAll('.tagihan-checkbox');
+  const nominalInputs = document.querySelectorAll('.tagihan-nominal-input');
+  
+  function calculateTotal() {
+    let total = 0;
+    checkboxes.forEach((cb, idx) => {
+      const input = nominalInputs[idx];
+      if (cb.checked) {
+        total += Number(input.value) || 0;
+      }
+    });
+    
+    document.getElementById('tagihan_total_display').textContent = 'Rp ' + total.toLocaleString('id-ID');
+    document.getElementById('nominal').value = total;
+  }
+
+  checkboxes.forEach((cb, idx) => {
+    cb.addEventListener('change', function() {
+      const input = nominalInputs[idx];
+      input.disabled = !this.checked;
+      
+      // Update selectAll status
+      const allChecked = Array.from(checkboxes).every(c => c.checked);
+      const someChecked = Array.from(checkboxes).some(c => c.checked);
+      selectAll.checked = allChecked;
+      selectAll.indeterminate = someChecked && !allChecked;
+      
+      calculateTotal();
+    });
+  });
+
+  nominalInputs.forEach(input => {
+    input.addEventListener('input', calculateTotal);
+  });
+
+  selectAll.addEventListener('change', function() {
+    const isChecked = this.checked;
+    checkboxes.forEach((cb, idx) => {
+      cb.checked = isChecked;
+      nominalInputs[idx].disabled = !isChecked;
+    });
+    calculateTotal();
+  });
+}
+
+// Remove old handleTagihanSelectChange
+// window.handleTagihanSelectChange = function(selectElem) { ... }
 
 async function loadKelasForTabungan(lembagaId) {
   const kelasSelect = document.getElementById('kelasId_tabungan');
@@ -427,12 +529,4 @@ async function handleKelasChangeTabungan(kelasId) {
   }
 }
 
-window.handleTagihanSelectChange = function(selectElem) {
-  const selectedOption = selectElem.options[selectElem.selectedIndex];
-  if (selectedOption && selectedOption.value) {
-    const nominal = selectedOption.getAttribute('data-nominal');
-    document.getElementById('nominal').value = nominal || '0';
-  } else {
-    document.getElementById('nominal').value = '';
-  }
-}
+

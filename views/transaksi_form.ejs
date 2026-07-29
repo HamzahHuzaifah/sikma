@@ -87,15 +87,18 @@
           }) %>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <!-- Dropdown Tagihan -->
-          <%- include('components/select_field', {
-            id: 'tagihanId_tagihan',
-            label: 'Pilih Tagihan',
-            name: 'tagihanId_tagihan',
-            onChange: 'handleTagihanSelectChange(this)',
-            optionsHTML: '<option value="">-- Pilih Santri Terlebih Dahulu --</option>'
-          }) %>
+          <!-- Daftar Tagihan (Multi-Select) -->
+          <div class="col-span-1 md:col-span-2 mb-2">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilih Tagihan Yang Ingin Dibayar</label>
+            <div id="tagihan_list_container" class="bg-white border border-slate-200 rounded-xl p-4 shadow-inner max-h-80 overflow-y-auto">
+              <div class="text-center py-4 text-sm text-slate-400">-- Pilih Santri Terlebih Dahulu --</div>
+            </div>
+            <!-- Kalkulasi Total -->
+            <div class="mt-4 flex justify-end items-center bg-indigo-50 p-3 rounded-lg border border-indigo-100 hidden" id="tagihan_total_container">
+              <span class="text-sm font-bold text-indigo-700 mr-4">Total Pembayaran Tagihan:</span>
+              <span class="text-xl font-black text-indigo-700" id="tagihan_total_display">Rp 0</span>
+            </div>
+          </div>
 
           <!-- Metode Pembayaran -->
           <%- include('components/select_field', {
