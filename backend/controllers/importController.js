@@ -29,7 +29,7 @@ module.exports = {
   importExcel: async (req, res) => {
     try {
       if (!req.file) {
-        return res.redirect('/import?error=Harap pilih file Excel/CSV terlebih dahulu!');
+        return res.redirect('/admin/import?error=Harap pilih file Excel/CSV terlebih dahulu!');
       }
 
       // Membaca file dari memory buffer
@@ -39,7 +39,7 @@ module.exports = {
       const rows = xlsx.utils.sheet_to_json(sheet);
 
       if (rows.length === 0) {
-        return res.redirect('/import?error=File Excel kosong atau format tidak sesuai!');
+        return res.redirect('/admin/import?error=File Excel kosong atau format tidak sesuai!');
       }
 
       let importedCount = 0;
@@ -83,10 +83,10 @@ module.exports = {
         importedCount++;
       }
 
-      res.redirect(`/import?success=Berhasil mengimpor ${importedCount} data santri dari file Excel!`);
+      res.redirect(`/admin/import?success=Berhasil mengimpor ${importedCount} data santri dari file Excel!`);
     } catch (error) {
       console.error(error);
-      res.redirect('/import?error=Gagal mengimpor file: ' + error.message);
+      res.redirect('/admin/import?error=Gagal mengimpor file: ' + error.message);
     }
   },
 
@@ -100,7 +100,7 @@ module.exports = {
       // Ambil lembaga untuk mapping
       const lembagas = await Lembaga.findAll();
       if (lembagas.length === 0) {
-        return res.redirect('/import?error=Data lembaga belum diinisialisasi!');
+        return res.redirect('/admin/import?error=Data lembaga belum diinisialisasi!');
       }
 
       try {
@@ -113,7 +113,7 @@ module.exports = {
         }
       } catch (err) {
         console.error(`[API SPMB Error] Koneksi ke ${apiUrl} gagal:`, err.message);
-        return res.redirect('/import?error=Gagal terhubung ke server SPMB. Pastikan API URL benar dan server SPMB sedang online.');
+        return res.redirect('/admin/import?error=Gagal terhubung ke server SPMB. Pastikan API URL benar dan server SPMB sedang online.');
       }
 
       let pulledCount = 0;
@@ -168,10 +168,10 @@ module.exports = {
 
       const statusMsg = `success=Berhasil menarik ${pulledCount} data santri baru dari API SPMB secara real-time!`;
 
-      res.redirect(`/import?${statusMsg}`);
+      res.redirect(`/admin/import?${statusMsg}`);
     } catch (error) {
       console.error(error);
-      res.redirect('/import?error=Gagal menarik data dari SPMB: ' + error.message);
+      res.redirect('/admin/import?error=Gagal menarik data dari SPMB: ' + error.message);
     }
   },
 
@@ -181,7 +181,7 @@ module.exports = {
       const { nama, lembagaId, kelas } = req.body;
 
       if (!nama || !lembagaId || !kelas) {
-        return res.redirect('/import?error=Semua kolom input manual harus diisi!');
+        return res.redirect('/admin/import?error=Semua kolom input manual harus diisi!');
       }
 
       // Cari atau buat Kelas
@@ -202,7 +202,7 @@ module.exports = {
       });
 
       if (santriExists) {
-        return res.redirect(`/import?error=Santri dengan nama ${nama} sudah terdaftar di kelas tersebut!`);
+        return res.redirect(`/admin/import?error=Santri dengan nama ${nama} sudah terdaftar di kelas tersebut!`);
       }
 
       // Simpan Santri baru
@@ -212,10 +212,10 @@ module.exports = {
         lembagaId: lembagaId
       });
 
-      res.redirect(`/import?success=Berhasil menambahkan santri ${nama} secara manual!`);
+      res.redirect(`/admin/import?success=Berhasil menambahkan santri ${nama} secara manual!`);
     } catch (error) {
       console.error(error);
-      res.redirect('/import?error=Gagal menambahkan santri: ' + error.message);
+      res.redirect('/admin/import?error=Gagal menambahkan santri: ' + error.message);
     }
   },
 
