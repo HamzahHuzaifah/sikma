@@ -10,6 +10,7 @@ const sectionPengeluaran = document.getElementById('section_pengeluaran');
 const sectionTabungan = document.getElementById('section_tabungan');
 const sectionInfak = document.getElementById('section_infak');
 const sectionSetorMadrasah = document.getElementById('section_setor_madrasah');
+const sectionSpmb = document.getElementById('section_spmb');
 
 // Input elements inside sections to toggle disabled state (disabled inputs won't be submitted)
 const tagihanInputs = sectionTagihan ? sectionTagihan.querySelectorAll('select, textarea, input') : [];
@@ -18,6 +19,7 @@ const pengeluaranInputs = sectionPengeluaran ? sectionPengeluaran.querySelectorA
 const tabunganInputs = sectionTabungan ? sectionTabungan.querySelectorAll('select, textarea, input') : [];
 const infakInputs = sectionInfak ? sectionInfak.querySelectorAll('select, textarea, input') : [];
 const setorMadrasahInputs = sectionSetorMadrasah ? sectionSetorMadrasah.querySelectorAll('select, textarea, input') : [];
+const spmbInputs = sectionSpmb ? sectionSpmb.querySelectorAll('select, textarea, input') : [];
 
 function disableInputs(inputs) {
   inputs.forEach(input => {
@@ -50,6 +52,7 @@ if (pengeluaranInputs.length) disableInputs(pengeluaranInputs);
 if (tabunganInputs.length) disableInputs(tabunganInputs);
 if (infakInputs.length) disableInputs(infakInputs);
 if (setorMadrasahInputs.length) disableInputs(setorMadrasahInputs);
+if (spmbInputs.length) disableInputs(spmbInputs);
 
 const allTagihans = window.allTagihans || [];
 
@@ -65,6 +68,7 @@ function handleLembagaChange(lembagaId) {
   sectionTabungan.classList.add('hidden');
   sectionInfak.classList.add('hidden');
   if (sectionSetorMadrasah) sectionSetorMadrasah.classList.add('hidden');
+  if (sectionSpmb) sectionSpmb.classList.add('hidden');
   rowNominal.classList.add('hidden');
   
   disableInputs(tagihanInputs);
@@ -73,6 +77,7 @@ function handleLembagaChange(lembagaId) {
   disableInputs(tabunganInputs);
   disableInputs(infakInputs);
   disableInputs(setorMadrasahInputs);
+  disableInputs(spmbInputs);
   
   jenisTransaksiSelect.innerHTML = '<option value="" disabled selected>-- Pilih Jenis Transaksi --</option>';
   
@@ -98,6 +103,23 @@ function handleLembagaChange(lembagaId) {
     jenisTransaksiSelect.appendChild(optGroupTagihan);
   }
 
+  // Tambahan SPMB options (hanya di Madrasah Pusat)
+  if (isMadrasah) {
+    const optGroupSpmb = document.createElement('optgroup');
+    optGroupSpmb.label = "Pembayaran Tunggakan SPMB";
+    
+    const optBaru = document.createElement('option');
+    optBaru.value = 'pembayaran_daftar_baru_spmb';
+    optBaru.textContent = 'Pembayaran Daftar Baru (SPMB)';
+    optGroupSpmb.appendChild(optBaru);
+    
+    const optUlang = document.createElement('option');
+    optUlang.value = 'pembayaran_daftar_ulang_spmb';
+    optUlang.textContent = 'Pembayaran Daftar Ulang (SPMB)';
+    optGroupSpmb.appendChild(optUlang);
+    
+    jenisTransaksiSelect.appendChild(optGroupSpmb);
+  }
 
   const optGroupUmum = document.createElement('optgroup');
   optGroupUmum.label = "Transaksi Umum";
@@ -221,6 +243,21 @@ function handleJenisTransaksiChange(value) {
     nominalInput.disabled = true;
 
     loadKelasForTabungan(selectedLembagaId);
+
+  } else if (value === 'pembayaran_daftar_baru_spmb' || value === 'pembayaran_daftar_ulang_spmb') {
+    if (sectionSpmb) sectionSpmb.classList.remove('hidden');
+    enableInputs(spmbInputs, ['santriId_spmb', 'metode_spmb']);
+    nominalInput.value = '';
+    const globalNominalWrapper = document.getElementById('global_nominal_wrapper');
+    if (globalNominalWrapper) globalNominalWrapper.classList.remove('hidden');
+    nominalInput.setAttribute('required', 'true');
+    nominalInput.disabled = false;
+    
+    // reset spmb detail
+    const spmbDetailContainer = document.getElementById('spmb_detail_container');
+    if (spmbDetailContainer) spmbDetailContainer.innerHTML = '-- Pilih Santri Terlebih Dahulu --';
+    
+    loadSantriSpmb(selectedLembagaId, value === 'pembayaran_daftar_ulang_spmb');
 
   } else if (value === 'infak_harian') {
     sectionInfak.classList.remove('hidden');
@@ -529,4 +566,93 @@ async function handleKelasChangeTabungan(kelasId) {
   }
 }
 
+// ================= SPMB LOGIC =================
+window.spmbTunggakanData = [];
 
+async function loadSantriSpmb(lembagaId, isDaftarUlang) {
+  const santriSelect = document.getElementById('santriId_spmb');
+  if (!santriSelect) return;
+
+  santriSelect.innerHTML = '<option value="">Memuat data dari SPMB...</option>';
+  santriSelect.disabled = true;
+  
+  const lembagaSelect = document.getElementById('lembagaId_global');
+  const lembagaName = lembagaSelect ? lembagaSelect.options[lembagaSelect.selectedIndex].text : '';
+
+  try {
+    const res = await fetch(`/api/spmb/tunggakan`);
+    const allData = await res.json();
+    
+    window.spmbTunggakanData = allData.filter(item => {
+        return item.is_daftar_ulang === isDaftarUlang && item.sisa > 0;
+    });
+
+    let html = '<option value="">-- Pilih Santri --</option>';
+    if (window.spmbTunggakanData.length === 0) {
+      html = '<option value="">Tidak ada tunggakan santri SPMB</option>';
+    } else {
+      window.spmbTunggakanData.forEach((s, idx) => {
+        html += `<option value="${idx}">${s.nama} [${s.lembaga}] (Sisa: Rp ${Number(s.sisa).toLocaleString('id-ID')})</option>`;
+      });
+    }
+    santriSelect.innerHTML = html;
+    santriSelect.disabled = false;
+  } catch (err) {
+    console.error(err);
+    santriSelect.innerHTML = '<option value="">Gagal memuat data SPMB</option>';
+  }
+}
+
+window.handleSantriSpmbChange = function(idx) {
+  const detailContainer = document.getElementById('spmb_detail_container');
+  const inputNama = document.getElementById('nama_spmb');
+  const inputSatuan = document.getElementById('satuan_pendidikan_spmb');
+  const inputIsDaftarUlang = document.getElementById('is_daftar_ulang_spmb');
+  
+  if (!detailContainer) return;
+
+  if (idx === "") {
+    detailContainer.innerHTML = '-- Pilih Santri Terlebih Dahulu --';
+    document.getElementById('nominal').value = '';
+    inputNama.disabled = true;
+    inputSatuan.disabled = true;
+    inputIsDaftarUlang.disabled = true;
+    return;
+  }
+
+  const data = window.spmbTunggakanData[idx];
+  if (!data) return;
+
+  // Set hidden inputs to send to backend
+  inputNama.value = data.nama;
+  inputNama.disabled = false;
+  
+  inputSatuan.value = data.satuan_pendidikan_asli;
+  inputSatuan.disabled = false;
+  
+  inputIsDaftarUlang.value = data.is_daftar_ulang ? 'true' : 'false';
+  inputIsDaftarUlang.disabled = false;
+  
+  document.getElementById('nominal').value = data.sisa;
+  
+  detailContainer.innerHTML = `
+    <div class="flex flex-col gap-2">
+      <div class="flex justify-between border-b border-slate-100 pb-2">
+        <span class="font-bold text-slate-700">Jenis Tagihan</span>
+        <span class="text-indigo-600 font-bold">${data.nama_tagihan}</span>
+      </div>
+      <div class="flex justify-between border-b border-slate-100 pb-2">
+        <span class="font-bold text-slate-700">Total Tagihan</span>
+        <span class="text-slate-600">Rp ${Number(data.total).toLocaleString('id-ID')}</span>
+      </div>
+      <div class="flex justify-between border-b border-slate-100 pb-2">
+        <span class="font-bold text-slate-700">Sudah Dibayar</span>
+        <span class="text-emerald-600">Rp ${Number(data.dibayar).toLocaleString('id-ID')}</span>
+      </div>
+      <div class="flex justify-between pt-1">
+        <span class="font-black text-slate-800">Sisa Tunggakan</span>
+        <span class="text-rose-600 font-black text-lg">Rp ${Number(data.sisa).toLocaleString('id-ID')}</span>
+      </div>
+    </div>
+  `;
+}

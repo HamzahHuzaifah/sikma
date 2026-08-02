@@ -1,4 +1,5 @@
 const { Op } = require('sequelize');
+const axios = require('axios');
 const { Lembaga, Kategori, Kelas, Santri, Transaksi, Tagihan, Tabungan, InfakHarian, User } = require('../models');
 const { catatLog } = require('../utils/logger');
 
@@ -245,6 +246,37 @@ module.exports = {
         insertData.jenis = 'Pemasukan';
         insertData.lembagaId = globalLembagaId;
         insertData.keterangan = `Uraian: ${uraianPemasukan}\nDiterima Dari: ${diterimaDari}\nPemberi: ${pemberi}\nMetode: ${metode_pemasukan || 'Cash'}\nCatatan: ${catatan_pemasukan || ''}`;
+
+      } else if (jenisTransaksi === 'pembayaran_daftar_baru_spmb' || jenisTransaksi === 'pembayaran_daftar_ulang_spmb') {
+        const { nama_spmb, satuan_pendidikan_spmb, is_daftar_ulang_spmb, metode_spmb, catatan_spmb } = req.body;
+        
+        if (!nama_spmb || !satuan_pendidikan_spmb || !nominal) {
+          return res.redirect(`${redirectBase}${separator}error=Data pembayaran SPMB tidak lengkap!`);
+        }
+
+        // Panggil API SPMB untuk mencatat pembayaran di sana
+        try {
+          const isDaftarUlang = is_daftar_ulang_spmb === 'true';
+          const spmbBaseUrl = (req.hostname === 'localhost' || req.hostname === '127.0.0.1')
+            ? 'http://localhost:5000'
+            : 'https://spmb.mjic.sch.id';
+          const apiUrl = `${spmbBaseUrl}/api/bayar-tunggakan`;
+          
+          await axios.post(apiUrl, {
+            nama: nama_spmb,
+            satuan_pendidikan_asli: satuan_pendidikan_spmb,
+            is_daftar_ulang: isDaftarUlang,
+            nominal: nominal
+          }, { timeout: 5000 });
+          
+        } catch (error) {
+          console.error("Gagal bayar tunggakan ke SPMB:", error.response?.data || error.message);
+          return res.redirect(`${redirectBase}${separator}error=Gagal mencatat pembayaran di sistem SPMB. Pastikan SPMB online.`);
+        }
+
+        insertData.jenis = 'Pemasukan';
+        insertData.lembagaId = globalLembagaId;
+        insertData.keterangan = `Pembayaran Tunggakan SPMB: ${is_daftar_ulang_spmb === 'true' ? 'Daftar Ulang' : 'Daftar Baru'}\nNama Pendaftar: ${nama_spmb}\nSatuan Pendidikan: ${satuan_pendidikan_spmb}\nMetode: ${metode_spmb || 'Cash'}\nCatatan: ${catatan_spmb || ''}`;
 
       } else if (jenisTransaksi === 'pengeluaran') {
         if (!uraianPengeluaran || !dibayarkanKepada || !globalLembagaId) {

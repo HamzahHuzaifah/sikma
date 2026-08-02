@@ -77,6 +77,7 @@ adminRouter.post('/infak/delete/:id', transactionController.postDeleteInfak);
 
 // Import Santri & CRUD Santri
 adminRouter.get('/import', importController.getImportPage);
+adminRouter.get('/spmb/backup', importController.getSpmbBackup);
 adminRouter.get('/santri/edit/:id', importController.getEditSantri);
 adminRouter.post('/santri/edit/:id', importController.postEditSantri);
 adminRouter.post('/santri/delete/:id', importController.postDeleteSantri);

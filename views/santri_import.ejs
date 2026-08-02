@@ -55,8 +55,8 @@
           id="apiUrl" 
           name="apiUrl" 
           required 
-          value="https://spmb.mjic.sch.id/api/santri-baru" 
-          placeholder="https://spmb.mjic.sch.id/api/..." 
+          value="<%= spmbBaseUrl %>/api/santri-baru" 
+          placeholder="<%= spmbBaseUrl %>/api/..." 
           class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition"
         >
         <div class="text-[10px] text-slate-400 font-semibold mt-1.5">Endpoint API yang mengembalikan format JSON berisi data pendaftaran santri baru.</div>
@@ -69,6 +69,13 @@
       >
         <i class="bi bi-lightning-fill"></i> Tarik Data Sekarang
       </button>
+
+      <a 
+        href="/admin/spmb/backup" 
+        class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-1.5 text-sm mt-2 text-center"
+      >
+        <i class="bi bi-clock-history"></i> Lihat Arsip SPMB
+      </a>
     </form>
   </div>
 

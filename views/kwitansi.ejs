@@ -63,12 +63,23 @@
         let lembaga_name = transaction.lembaga ? transaction.lembaga.nama.toUpperCase() : '';
         let is_madrasah = false;
         
+        let is_spmb = transaction.keterangan && transaction.keterangan.includes('Pembayaran Tunggakan SPMB');
+        let spmb_jenis = '';
+        let spmb_nama = '';
+        let spmb_satuan = '';
+        
+        if (is_spmb) {
+            let lines = transaction.keterangan.split('\n');
+            if (lines.length > 0) spmb_jenis = lines[0].replace('Pembayaran Tunggakan SPMB: ', '').trim();
+            if (lines.length > 1) spmb_nama = lines[1].replace('Nama Pendaftar: ', '').trim();
+            if (lines.length > 2 && lines[2].startsWith('Satuan Pendidikan: ')) spmb_satuan = lines[2].replace('Satuan Pendidikan: ', '').trim();
+        }
+
         if (lembaga_name.includes('PAUDQU')) {
             ttd_img = "/images/TTD Bendahara Puput.webp";
             ttd_name = "Dian Puput Tiara, S.Pd.";
         } else if (lembaga_name.includes('MADRASAH') || lembaga_name.includes('JAMI')) {
             is_madrasah = true;
-            // Default untuk Madrasah
             ttd_img = "/images/TTD Bendahara Puput.webp";
             ttd_name = "Dian Puput Tiara, S.Pd.";
         }
@@ -114,7 +125,7 @@
                         <td class="colon" style="width: 20px;">:</td>
                         <td class="value" style="flex: 1;"><span class="editable-field" data-field="uraian_pembayaran"><%= uraian_pembayaran %></span></td>
                     </tr>
-                <% } else if (is_pembayaran) { %>
+                <% } else if (is_pembayaran || is_spmb) { %>
                     <tr data-row-id="diterimaDari" style="display: flex; width: 100%; order: <%= getOrder('diterimaDari') %>;">
                         <td class="reorder-controls no-print" style="display: none; width: 40px; padding: 5px; vertical-align: middle;">
                             <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
@@ -123,7 +134,7 @@
                         <td class="label" style="width: 200px;">Telah Diterima Dari</td>
                         <td class="colon" style="width: 20px;">:</td>
                         <td class="value" style="flex: 1;">
-                            <span class="editable-field" data-field="diterimaDariPembayaran"><%= transaction.diterimaDariPembayaran || 'Orang Tua / Wali Santri' %></span>
+                            <span class="editable-field" data-field="diterimaDariPembayaran"><%= transaction.diterimaDariPembayaran || (is_spmb ? 'Ayah/Ibu ' + spmb_nama + ' (Orang Tua / Wali Santri)' : 'Orang Tua / Wali Santri') %></span>
                         </td>
                     </tr>
                     <tr data-row-id="namaSantri" style="display: flex; width: 100%; order: <%= getOrder('namaSantri') %>;">
@@ -131,10 +142,10 @@
                             <button type="button" onclick="moveRowUp(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block; margin-bottom: 2px;"><i class="fas fa-arrow-up"></i></button>
                             <button type="button" onclick="moveRowDown(this)" style="background: #e2e8f0; border: 1px solid #cbd5e1; cursor: pointer; padding: 5px; border-radius: 4px; display: block;"><i class="fas fa-arrow-down"></i></button>
                         </td>
-                        <td class="label" style="width: 200px;">Nama Santri</td>
+                        <td class="label" style="width: 200px;"><%= is_spmb ? 'Nama Calon Santri' : 'Nama Santri' %></td>
                         <td class="colon" style="width: 20px;">:</td>
                         <td class="value" style="flex: 1;"><span class="value-highlight">
-                                <%= transaction.santri ? transaction.santri.nama : '-' %>
+                                <%= is_spmb ? spmb_nama : (transaction.santri ? transaction.santri.nama : '-') %>
                             </span></td>
                     </tr>
                     <tr data-row-id="satuanPendidikan" style="display: flex; width: 100%; order: <%= getOrder('satuanPendidikan') %>;">
@@ -145,7 +156,7 @@
                         <td class="label" style="width: 200px;">Satuan Pendidikan</td>
                         <td class="colon" style="width: 20px;">:</td>
                         <td class="value" style="flex: 1;">
-                            <%= transaction.lembaga.nama %> <%= transaction.kelas ? transaction.kelas.nama : '' %>
+                            <%= is_spmb ? spmb_satuan || transaction.lembaga.nama : (transaction.lembaga.nama + ' ' + (transaction.kelas ? transaction.kelas.nama : '')) %>
                         </td>
                     </tr>
                     <tr data-row-id="untukPembayaran" style="display: flex; width: 100%; order: <%= getOrder('untukPembayaran') %>;">
@@ -155,7 +166,7 @@
                         </td>
                         <td class="label" style="width: 200px;">Untuk Pembayaran</td>
                         <td class="colon" style="width: 20px;">:</td>
-                        <td class="value" style="flex: 1;"><span class="editable-field" data-field="uraian_pembayaran"><%= uraian_pembayaran %></span></td>
+                        <td class="value" style="flex: 1;"><span class="editable-field" data-field="uraian_pembayaran"><%= is_spmb ? 'Pembayaran ' + spmb_jenis + ' - ' + spmb_nama : uraian_pembayaran %></span></td>
                     </tr>
                 <% } else { %>
                     <tr data-row-id="diterimaDari" style="display: flex; width: 100%; order: <%= getOrder('diterimaDari') %>;">
@@ -231,9 +242,12 @@
                                     <option value="henny">Henny Maulida Putri, S.Pd.</option>
                                 </select>
                             </div>
+                            <p class="signature-name" id="ttdName" style="position: relative; z-index: 2;"><u><%= ttd_name %></u></p>
+                            <p class="signature-role">Bendahara Madrasah</p>
+                        <% } else { %>
+                            <p class="signature-name" id="ttdName" style="position: relative; z-index: 2;"><%= ttd_name %></p>
+                            <p class="signature-role">Bendahara <%= transaction.lembaga.nama %></p>
                         <% } %>
-                        <p class="signature-name" id="ttdName" style="position: relative; z-index: 2;"><%= ttd_name %></p>
-                        <p class="signature-role">Bendahara <%= transaction.lembaga.nama %></p>
                     </td>
                 </tr>
             </table>

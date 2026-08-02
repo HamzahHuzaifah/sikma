@@ -125,6 +125,63 @@
         </div>
       </div>
 
+      <!-- ==================== SECTION SPMB: PEMBAYARAN TUNGGAKAN SPMB ==================== -->
+      <div id="section_spmb" class="hidden bg-slate-50/50 border border-slate-100 rounded-xl p-5 md:p-6 space-y-6">
+        <h3 class="text-sm font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200/60 pb-3">
+          <i class="bi bi-person-badge-fill"></i> Pembayaran Tunggakan SPMB
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Dropdown Santri SPMB -->
+          <div class="col-span-1 md:col-span-2">
+            <%- include('components/select_field', {
+              id: 'santriId_spmb',
+              label: 'Nama Santri (Pendaftar SPMB)',
+              name: 'santriId_spmb',
+              onChange: 'handleSantriSpmbChange(this.value)',
+              optionsHTML: '<option value="">-- Memuat Data SPMB... --</option>'
+            }) %>
+            <div class="text-[10px] text-slate-400 font-semibold mt-1.5"><i class="bi bi-info-circle"></i> Hanya menampilkan santri dari lembaga terpilih yang masih memiliki sisa tunggakan.</div>
+          </div>
+          
+          <!-- Hidden inputs untuk kirim ke SIKMA controller -->
+          <input type="hidden" id="nama_spmb" name="nama_spmb" disabled>
+          <input type="hidden" id="satuan_pendidikan_spmb" name="satuan_pendidikan_spmb" disabled>
+          <input type="hidden" id="is_daftar_ulang_spmb" name="is_daftar_ulang_spmb" disabled>
+
+          <!-- Detail Tunggakan SPMB -->
+          <div class="col-span-1 md:col-span-2 mb-2">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Rincian Tunggakan SPMB</label>
+            <div id="spmb_detail_container" class="bg-white border border-slate-200 rounded-xl p-4 shadow-inner text-sm text-slate-500">
+              -- Pilih Santri Terlebih Dahulu --
+            </div>
+          </div>
+
+          <!-- Metode Pembayaran -->
+          <%- include('components/select_field', {
+            id: 'metode_spmb',
+            label: 'Metode Pembayaran',
+            name: 'metode_spmb',
+            optionsHTML: `
+              <option value="Cash">Cash</option>
+              <option value="Transfer">Transfer</option>
+            `
+          }) %>
+          
+          <!-- Catatan Tambahan -->
+          <div>
+            <label for="catatan_spmb" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Catatan Tambahan (Opsional)</label>
+            <textarea 
+              id="catatan_spmb" 
+              name="catatan_spmb" 
+              rows="2" 
+              placeholder="Keterangan tambahan..." 
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm shadow-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition duration-150"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
       <!-- ==================== SECTION 2: PEMASUKAN LAIN (GENERAL INCOME) ==================== -->
       <div id="section_pemasukan" class="hidden bg-slate-50/50 border border-slate-100 rounded-xl p-5 md:p-6 space-y-6">
         <h3 class="text-sm font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200/60 pb-3">

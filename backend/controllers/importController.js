@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const xlsx = require('xlsx');
 const axios = require('axios');
 const { Op } = require('sequelize');
@@ -8,12 +10,17 @@ module.exports = {
   // Render Halaman Import
   getImportPage: async (req, res) => {
     try {
+      const spmbBaseUrl = (req.hostname === 'localhost' || req.hostname === '127.0.0.1')
+        ? 'http://localhost:5000'
+        : 'https://spmb.mjic.sch.id';
+
       const lembagas = await Lembaga.findAll();
       const kelasList = await Kelas.findAll({ include: [{ model: Lembaga, as: 'lembaga' }] });
       
       res.render('santri_import', {
         lembagas,
         kelasList,
+        spmbBaseUrl: spmbBaseUrl,
         username: req.session.username,
         success: req.query.success || null,
         error: req.query.error || null,
@@ -92,7 +99,11 @@ module.exports = {
 
   // Tarik Data dari spmb.mjic.sch.id via API
   pullFromSpmb: async (req, res) => {
-    const apiUrl = req.body.apiUrl || 'https://spmb.mjic.sch.id/api/santri-baru';
+    const defaultSpmbUrl = (req.hostname === 'localhost' || req.hostname === '127.0.0.1')
+        ? 'http://localhost:5000/api/santri-baru'
+        : 'https://spmb.mjic.sch.id/api/santri-baru';
+        
+    const apiUrl = req.body.apiUrl || defaultSpmbUrl;
     
     try {
       let dataSantri = [];
@@ -166,7 +177,29 @@ module.exports = {
         }
       }
 
-      const statusMsg = `success=Berhasil menarik ${pulledCount} data santri baru dari API SPMB secara real-time!`;
+      // -- TAMBAHAN: Tarik Data Tunggakan untuk Backup --
+      let dataTunggakan = [];
+      try {
+        const urlTunggakan = apiUrl.replace('santri-baru', 'tunggakan');
+        const respTunggakan = await axios.get(urlTunggakan, { timeout: 3000 });
+        if (respTunggakan.data && Array.isArray(respTunggakan.data)) {
+            dataTunggakan = respTunggakan.data;
+        } else if (respTunggakan.data && Array.isArray(respTunggakan.data.data)) {
+            dataTunggakan = respTunggakan.data.data;
+        }
+      } catch (err) {
+        console.warn('Gagal menarik data tunggakan untuk backup:', err.message);
+      }
+
+      // Simpan backup ke JSON
+      const backupDir = path.join(__dirname, '..', 'data');
+      if (!fs.existsSync(backupDir)) {
+          fs.mkdirSync(backupDir, { recursive: true });
+      }
+      fs.writeFileSync(path.join(backupDir, 'spmb_santri_backup.json'), JSON.stringify(dataSantri, null, 2));
+      fs.writeFileSync(path.join(backupDir, 'spmb_tunggakan_backup.json'), JSON.stringify(dataTunggakan, null, 2));
+
+      const statusMsg = `success=Berhasil menarik ${pulledCount} data santri baru dari API SPMB secara real-time! Backup tunggakan juga berhasil disimpan.`;
 
       res.redirect(`/admin/import?${statusMsg}`);
     } catch (error) {
@@ -444,6 +477,68 @@ module.exports = {
     } catch (error) {
       console.error(error);
       res.status(500).send('Internal Server Error');
+    }
+  },
+
+  // Proxy API Tunggakan SPMB
+  apiSpmbTunggakan: async (req, res) => {
+    try {
+        const spmbBaseUrl = (req.hostname === 'localhost' || req.hostname === '127.0.0.1')
+          ? 'http://localhost:5000'
+          : 'https://spmb.mjic.sch.id';
+        const apiUrl = `${spmbBaseUrl}/api/tunggakan`;
+        const response = await axios.get(apiUrl, { timeout: 3000 });
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error proxying SPMB Tunggakan:', error.message);
+        // Fallback to backup
+        try {
+            const backupPath = path.join(__dirname, '..', 'data', 'spmb_tunggakan_backup.json');
+            if (fs.existsSync(backupPath)) {
+                const data = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+                return res.json(data);
+            }
+        } catch (e) {
+            console.error('Error reading backup:', e.message);
+        }
+        res.status(500).json({ error: 'Gagal mengambil data tunggakan dari SPMB' });
+    }
+  },
+
+  // Halaman Backup Data Santri SPMB
+  getSpmbBackup: async (req, res) => {
+    try {
+        let dataSantri = [];
+        try {
+            const spmbBaseUrl = (req.hostname === 'localhost' || req.hostname === '127.0.0.1')
+              ? 'http://localhost:5000'
+              : 'https://spmb.mjic.sch.id';
+            const apiUrl = `${spmbBaseUrl}/api/santri-baru`;
+            const response = await axios.get(apiUrl, { timeout: 3000 });
+            dataSantri = response.data.data || response.data;
+        } catch (err) {
+            // Fallback to backup
+            const backupPath = path.join(__dirname, '..', 'data', 'spmb_santri_backup.json');
+            if (fs.existsSync(backupPath)) {
+                dataSantri = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+            }
+        }
+        
+        // Filter lembaga
+        const filterLembaga = req.query.lembaga || '';
+        if (filterLembaga) {
+            dataSantri = dataSantri.filter(s => s.lembaga.toLowerCase() === filterLembaga.toLowerCase());
+        }
+
+        res.render('spmb_backup', {
+            title: 'Data Pendaftar SPMB (Read-Only)',
+            santriList: dataSantri,
+            filterLembaga,
+            username: req.session.username
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Internal Server Error');
     }
   }
 };

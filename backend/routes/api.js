@@ -24,4 +24,7 @@ router.post('/import/excel', upload.single('excelFile'), importController.import
 router.post('/import/spmb', importController.pullFromSpmb);
 router.post('/import/manual', importController.inputManual);
 
+// API Proxy ke SPMB
+router.get('/spmb/tunggakan', importController.apiSpmbTunggakan);
+
 module.exports = router;
