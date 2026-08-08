@@ -1,5 +1,33 @@
 console.log("SIKMA: transaksi-form.js loaded successfully!");
 
+let isSpmbTutupBuku = false;
+async function fetchSpmbStatus() {
+  try {
+    const spmbBaseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? 'http://localhost:5000'
+      : 'https://spmb.mjic.sch.id';
+      
+    const response = await fetch(`${spmbBaseUrl}/api/status-buku`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        isSpmbTutupBuku = data.isTutupBuku;
+        console.log("SIKMA: SPMB Tutup Buku Status:", isSpmbTutupBuku);
+        // Jika lembaga sudah terpilih, render ulang opsi Jenis Transaksi
+        const lembagaSelect = document.getElementById('lembagaId_global');
+        if (lembagaSelect && lembagaSelect.value) {
+            handleLembagaChange(lembagaSelect.value);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("SIKMA: Failed to fetch SPMB status", err);
+  }
+}
+
+// Panggil saat script dimuat
+fetchSpmbStatus();
+
 const jenisTransaksiSelect = document.getElementById('jenisTransaksi');
 const rowNominal = document.getElementById('row_nominal');
 const nominalInput = document.getElementById('nominal');
@@ -103,10 +131,10 @@ function handleLembagaChange(lembagaId) {
     jenisTransaksiSelect.appendChild(optGroupTagihan);
   }
 
-  // Tambahan SPMB options (hanya di Madrasah Pusat)
-  if (isMadrasah) {
+  // Tambahan SPMB options (hanya di Madrasah Pusat dan JIKA SPMB sudah tutup buku)
+  if (isMadrasah && isSpmbTutupBuku) {
     const optGroupSpmb = document.createElement('optgroup');
-    optGroupSpmb.label = "Pembayaran Tunggakan SPMB";
+    optGroupSpmb.label = "Pembayaran Pendaftaran SPMB";
     
     const optBaru = document.createElement('option');
     optBaru.value = 'pembayaran_daftar_baru_spmb';

@@ -4,7 +4,7 @@ const xlsx = require('xlsx');
 const axios = require('axios');
 const { Op } = require('sequelize');
 const { catatLog } = require('../utils/logger');
-const { Lembaga, Kelas, Santri } = require('../models');
+const { Lembaga, Kelas, Santri, Transaksi, Tagihan } = require('../models');
 
 module.exports = {
   // Render Halaman Import
@@ -533,12 +533,110 @@ module.exports = {
         res.render('spmb_backup', {
             title: 'Data Pendaftar SPMB (Read-Only)',
             santriList: dataSantri,
-            filterLembaga,
-            username: req.session.username
-        });
+        filterLembaga,
+        username: req.session.username
+    });
     } catch (error) {
         console.error(error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).json({ success: false, error: error.message });
+    }
+  },
+
+  // Fitur Tutup Buku Paripurna SPMB
+  postTutupBukuSpmb: async (req, res) => {
+    try {
+      const spmbBaseUrl = (req.hostname === 'localhost' || req.hostname === '127.0.0.1')
+        ? 'http://localhost:5000'
+        : 'https://spmb.mjic.sch.id';
+
+      // 1. Dapatkan Saldo Fisik Panitia
+      let saldoPanitia = 0;
+      try {
+        const saldoResp = await axios.get(`${spmbBaseUrl}/api/saldo-panitia-spmb`, { timeout: 5000 });
+        if (saldoResp.data && saldoResp.data.success) {
+          saldoPanitia = saldoResp.data.saldo_fisik_panitia;
+        }
+      } catch (err) {
+        console.warn('Gagal menarik saldo SPMB:', err.message);
+      }
+
+      let laporanSaldo = 'Saldo fisik SPMB ditarik Rp 0.';
+      
+      // 2. Jika ada saldo, buat transaksi Pemasukan Madrasah
+      if (saldoPanitia > 0) {
+        const madrasah = await Lembaga.findOne({ where: { nama: 'Madrasah' } });
+        if (madrasah) {
+          // Cek apakah bulan/tahun ini sudah ditarik
+          const now = new Date();
+          const exist = await Transaksi.findOne({
+            where: {
+              lembagaId: madrasah.id,
+              jenis: 'Pemasukan',
+              keterangan: 'Pelimpahan Saldo Kas Fisik Tutup Buku Panitia SPMB',
+              tanggal: {
+                [Op.like]: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}%`
+              }
+            }
+          });
+
+          if (!exist) {
+            await Transaksi.create({
+              lembagaId: madrasah.id,
+              jenis: 'Pemasukan',
+              nominal: saldoPanitia,
+              keterangan: 'Pelimpahan Saldo Kas Fisik Tutup Buku Panitia SPMB',
+              tanggal: now.toISOString().split('T')[0],
+              kasir: req.user ? req.user.username : 'admin'
+            });
+            laporanSaldo = `Berhasil melimpahkan Saldo Fisik SPMB sebesar Rp ${saldoPanitia.toLocaleString('id-ID')}.`;
+          } else {
+            laporanSaldo = `Saldo fisik SPMB bulan ini sudah ditarik sebelumnya.`;
+          }
+        }
+      }
+
+      // 3. Tarik Santri SPMB (Mencegah data hilang)
+      let dataSantri = [];
+      try {
+        const santriResp = await axios.get(`${spmbBaseUrl}/api/santri-baru`, { timeout: 5000 });
+        dataSantri = santriResp.data.data || santriResp.data || [];
+      } catch (err) {
+        console.warn('Gagal menarik data santri:', err.message);
+      }
+
+      const lembagas = await Lembaga.findAll();
+      const lembagaMap = {};
+      lembagas.forEach(l => { lembagaMap[l.nama.toLowerCase()] = l.id; });
+
+      let santriImported = 0;
+      for (const item of dataSantri) {
+        let namaSantri = item.nama?.toUpperCase().trim();
+        const namaKelas = item.kelas?.trim();
+        const namaLembaga = item.lembaga?.trim().toLowerCase();
+
+        if (!namaSantri || !namaKelas || !lembagaMap[namaLembaga]) continue;
+
+        const lemId = lembagaMap[namaLembaga];
+        const [kelasObj] = await Kelas.findOrCreate({ where: { nama: namaKelas, lembagaId: lemId } });
+        const [santriObj, created] = await Santri.findOrCreate({
+          where: { nama: namaSantri, kelasId: kelasObj.id, lembagaId: lemId }
+        });
+        if (created) santriImported++;
+      }
+
+      // 4. Pastikan ada template Tagihan "Tunggakan SPMB Tahun Lalu" di SIKMA
+      const madrasah = await Lembaga.findOne({ where: { nama: 'Madrasah' } });
+      if (madrasah) {
+        const [tagihanSPMB] = await Tagihan.findOrCreate({
+          where: { nama: 'Tunggakan SPMB Tahun Lalu', lembagaId: madrasah.id },
+          defaults: { nominal: 0, keterangan: 'Migrasi otomatis untuk melunasi hutang pendaftaran tahun lalu' }
+        });
+      }
+
+      res.redirect(`/admin/import?success=Eksekusi Tutup Buku Paripurna Berhasil! ${laporanSaldo} Serta mengamankan ${santriImported} data santri baru ke database SIKMA.`);
+    } catch (error) {
+      console.error('Error postTutupBukuSpmb:', error);
+      res.redirect('/admin/import?error=Gagal mengeksekusi tutup buku: ' + error.message);
     }
   }
 };

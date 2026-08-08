@@ -1,4 +1,4 @@
-<%- include('partials/header') %>
+<%- include('partials/header', { title: 'Form Pengguna' }) %>
 <%- include('partials/super-admin-sidebar') %>
 
 <div class="w-full max-w-2xl mx-auto">
@@ -13,7 +13,7 @@
   </div>
 
   <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-    <form action="<%= user ? '/super-admin/users/edit/' + user.id : '/super-admin/users/create' %>" method="POST" class="p-6 md:p-8 space-y-6">
+    <form action="<%= user ? '/super-admin/users/edit/' + user.id : '/super-admin/users/create' %>" method="POST" enctype="multipart/form-data" class="p-6 md:p-8 space-y-6">
       
       <%- include('components/input_field', {
         id: 'nama_lengkap',
@@ -58,6 +58,20 @@
         placeholder: user ? 'Biarkan kosong jika tidak diubah' : 'Minimal 6 karakter',
         required: user ? false : true
       }) %>
+
+      <hr class="border-slate-100">
+
+      <div>
+        <label for="ttdImage" class="block text-sm font-semibold text-slate-700 mb-1.5">Tanda Tangan (Opsional)</label>
+        <% if (user && user.ttdPath) { %>
+          <div class="mb-3">
+            <p class="text-xs text-slate-500 mb-1">Tanda tangan saat ini:</p>
+            <img src="<%= user.ttdPath %>" alt="TTD" class="h-12 object-contain border border-slate-200 rounded p-1 bg-slate-50">
+          </div>
+        <% } %>
+        <input type="file" id="ttdImage" name="ttdImage" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 transition">
+        <p class="text-xs text-slate-500 mt-2">Upload gambar tanda tangan (PNG/JPG/WebP). Gambar ini akan muncul secara otomatis di Kwitansi pembayaran yang diinput oleh akun ini.</p>
+      </div>
 
       <%- include('components/form_actions', {
         backUrl: '/super-admin/users',

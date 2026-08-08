@@ -7,8 +7,9 @@
     "satuan_pendidikan_asli": "MDT 3",
     "is_daftar_ulang": false,
     "total": 1800000,
-    "dibayar": 0,
-    "sisa": 1800000
+    "page": 1,
+    "dibayar": 950000,
+    "sisa": 850000
   },
   {
     "nama": "TEST BARU 332",
@@ -18,6 +19,7 @@
     "satuan_pendidikan_asli": "MDT 2",
     "is_daftar_ulang": false,
     "total": 1800000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 1800000
   },
@@ -29,6 +31,7 @@
     "satuan_pendidikan_asli": "PAUDQU A",
     "is_daftar_ulang": false,
     "total": 1800000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 1800000
   },
@@ -40,6 +43,7 @@
     "satuan_pendidikan_asli": "PAUDQU A",
     "is_daftar_ulang": false,
     "total": 1800000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 1800000
   },
@@ -51,8 +55,9 @@
     "satuan_pendidikan_asli": "MDT 4",
     "is_daftar_ulang": false,
     "total": 1800000,
-    "dibayar": 0,
-    "sisa": 1800000
+    "page": 1,
+    "dibayar": 800000,
+    "sisa": 1000000
   },
   {
     "nama": "TEST SANTRI B 526",
@@ -62,8 +67,9 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": false,
     "total": 1250000,
-    "dibayar": 250000,
-    "sisa": 1000000
+    "page": 1,
+    "dibayar": 1000000,
+    "sisa": 250000
   },
   {
     "nama": "TEST SANTRI R 999",
@@ -73,6 +79,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": false,
     "total": 1750000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 1750000
   },
@@ -84,6 +91,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": false,
     "total": 1750000,
+    "page": 1,
     "dibayar": 750000,
     "sisa": 1000000
   },
@@ -95,6 +103,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": false,
     "total": 1750000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 1750000
   },
@@ -106,6 +115,7 @@
     "satuan_pendidikan_asli": "MDT 1",
     "is_daftar_ulang": false,
     "total": 1800000,
+    "page": 1,
     "dibayar": 800000,
     "sisa": 1000000
   },
@@ -117,6 +127,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": false,
     "total": 1750000,
+    "page": 1,
     "dibayar": 750000,
     "sisa": 1000000
   },
@@ -128,6 +139,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": false,
     "total": 1250000,
+    "page": 1,
     "dibayar": 750000,
     "sisa": 500000
   },
@@ -139,6 +151,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": true,
     "total": 600000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 600000
   },
@@ -150,6 +163,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": true,
     "total": 850000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 850000
   },
@@ -161,6 +175,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": true,
     "total": 850000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 850000
   },
@@ -172,6 +187,7 @@
     "satuan_pendidikan_asli": "MDT 1",
     "is_daftar_ulang": true,
     "total": 850000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 850000
   },
@@ -183,6 +199,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": true,
     "total": 850000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 850000
   },
@@ -194,6 +211,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": true,
     "total": 850000,
+    "page": 1,
     "dibayar": 350000,
     "sisa": 500000
   },
@@ -205,6 +223,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": true,
     "total": 850000,
+    "page": 1,
     "dibayar": 350000,
     "sisa": 500000
   },
@@ -216,6 +235,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": true,
     "total": 600000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 600000
   },
@@ -227,6 +247,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": true,
     "total": 850000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 850000
   },
@@ -238,6 +259,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": true,
     "total": 600000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 600000
   },
@@ -249,6 +271,7 @@
     "satuan_pendidikan_asli": "TPQ A",
     "is_daftar_ulang": true,
     "total": 850000,
+    "page": 1,
     "dibayar": 0,
     "sisa": 850000
   }

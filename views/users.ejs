@@ -1,4 +1,4 @@
-<%- include('partials/header') %>
+<%- include('partials/header', { title: 'Data Pengguna' }) %>
 <%- include('partials/super-admin-sidebar') %>
 
 <div class="w-full">
@@ -45,7 +45,14 @@
             <% users.forEach(user => { %>
               <tr class="hover:bg-slate-50/50 transition">
                 <td class="p-4 align-middle">
-                  <div class="font-semibold text-slate-800"><%= user.nama_lengkap %></div>
+                  <div class="font-semibold text-slate-800 flex items-center gap-2">
+                    <%= user.nama_lengkap %>
+                    <% if (user.ttdPath) { %>
+                      <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-bold border border-blue-200" title="TTD Terupload">
+                        <i class="bi bi-pen"></i> TTD
+                      </span>
+                    <% } %>
+                  </div>
                 </td>
                 <td class="p-4 align-middle text-slate-600"><%= user.username %></td>
                 <td class="p-4 align-middle">

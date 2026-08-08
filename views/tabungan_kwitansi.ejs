@@ -56,20 +56,11 @@
 
         const tanggal_cetak = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
         const nominal_format = parseInt(transaction.nominal).toLocaleString('id-ID');
+        let ttd_img = (transaction.user && transaction.user.ttdPath) ? transaction.user.ttdPath : "/images/TTD Bendahara Henny.webp";
+        let ttd_name = (transaction.user) ? transaction.user.nama_lengkap : "Henny Maulida Putri, S.Pd.";
         
-        let ttd_img = "/images/TTD Bendahara Henny.webp";
-        let ttd_name = "Henny Maulida Putri, S.Pd.";
         let lembaga_name = transaction.lembaga ? transaction.lembaga.nama.toUpperCase() : '';
-        let is_madrasah = false;
-        
-        if (lembaga_name.includes('PAUDQU')) {
-            ttd_img = "/images/TTD Bendahara Puput.webp";
-            ttd_name = "Dian Puput Tiara, S.Pd.";
-        } else if (lembaga_name.includes('MADRASAH') || lembaga_name.includes('JAMI')) {
-            is_madrasah = true;
-            ttd_img = "/images/TTD Bendahara Puput.webp";
-            ttd_name = "Dian Puput Tiara, S.Pd.";
-        }
+        let is_madrasah = lembaga_name.includes('MADRASAH');
     %>
 
     <div class="page-wrapper" style="background-image: url('/images/Template%20Laporan%20dan%20Kwintasi%20<%= transaction.lembaga.nama %>.webp'), url('/images/Template%20Laporan%20dan%20Kwintasi.webp');">
@@ -192,16 +183,18 @@
                                 <button type="button" onclick="moveTtd(this, 5, 0)" style="background: #059669; color: white; border: none; padding: 5px; cursor: pointer; border-radius: 3px; margin: 0 2px;"><i class="fas fa-arrow-right"></i></button>
                             </div>
                         </div>
-                        <% if (is_madrasah) { %>
+                        <% if (role === 'Super Admin' && typeof signatureUsers !== 'undefined' && signatureUsers.length > 0) { %>
                             <div class="no-print" style="margin-bottom: 5px;">
                                 <select id="bendaharaSelect" onchange="changeBendahara()" style="font-size: 11px; padding: 2px 4px; border: 1px solid #ccc; border-radius: 4px; background: #fff;">
-                                    <option value="puput">Dian Puput Tiara, S.Pd.</option>
-                                    <option value="henny">Henny Maulida Putri, S.Pd.</option>
+                                    <option value="" disabled selected>-- Override TTD --</option>
+                                    <% signatureUsers.forEach(u => { %>
+                                        <option value="<%= u.ttdPath %>|<%= u.nama_lengkap %>"><%= u.nama_lengkap %></option>
+                                    <% }) %>
                                 </select>
                             </div>
                         <% } %>
-                        <p class="signature-name" id="ttdName" style="position: relative; z-index: 2;"><%= ttd_name %></p>
-                        <p class="signature-role">Bendahara <%= transaction.lembaga.nama %></p>
+                        <p class="signature-name" id="ttdName" style="position: relative; z-index: 2;"><%= is_madrasah ? `<u>${ttd_name}</u>` : ttd_name %></p>
+                        <p class="signature-role">Bendahara <%= is_madrasah ? 'Madrasah' : transaction.lembaga.nama %></p>
                     </td>
                 </tr>
             </table>
@@ -221,16 +214,14 @@
 
         function changeBendahara() {
             var select = document.getElementById('bendaharaSelect');
-            if (!select) return;
+            if (!select || !select.value) return;
             var ttdImage = document.getElementById('ttdImage');
             var ttdName = document.getElementById('ttdName');
             
-            if (select.value === 'puput') {
-                ttdImage.src = "/images/TTD Bendahara Puput.webp";
-                ttdName.innerText = "Dian Puput Tiara, S.Pd.";
-            } else if (select.value === 'henny') {
-                ttdImage.src = "/images/TTD Bendahara Henny.webp";
-                ttdName.innerText = "Henny Maulida Putri, S.Pd.";
+            var parts = select.value.split('|');
+            if (parts.length === 2) {
+                ttdImage.src = parts[0];
+                ttdName.innerHTML = <%= is_madrasah %> ? '<u>' + parts[1] + '</u>' : parts[1];
             }
         }
     </script>

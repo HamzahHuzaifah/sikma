@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ----------------------------------------------------
 // 1. Custom Alert & Confirm Modals
 // ----------------------------------------------------
-function showCustomConfirm(message, onConfirm) {
+function showCustomConfirm(message, onConfirm, okText = 'Hapus') {
   const modal = document.getElementById('custom-confirm-modal');
   const content = document.getElementById('custom-confirm-content');
   const msgEl = document.getElementById('custom-confirm-message');
@@ -75,6 +75,7 @@ function showCustomConfirm(message, onConfirm) {
   if (!modal || !content || !msgEl || !okBtn || !cancelBtn) return;
   
   msgEl.textContent = message;
+  okBtn.textContent = okText;
   
   // Reset buttons and focus
   okBtn.focus();
@@ -153,9 +154,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('form[onsubmit*="confirm"]').forEach(form => {
     const onsubmitAttr = form.getAttribute('onsubmit');
     let message = 'Apakah Anda yakin ingin melakukan tindakan ini?';
+    let okText = 'Hapus';
+    
     const match = onsubmitAttr.match(/confirm\(['"](.+?)['"]\)/);
     if (match && match[1]) {
-      message = match[1];
+      const parts = match[1].split('|');
+      message = parts[0];
+      if (parts.length > 1) {
+        okText = parts[1];
+      }
     }
     
     // Remove inline attribute to bypass native dialog
@@ -167,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showCustomConfirm(message, () => {
         // Temporarily attach dynamic indicator to bypass checks if any
         form.submit();
-      });
+      }, okText);
     });
   });
 });

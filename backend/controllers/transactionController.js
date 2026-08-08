@@ -254,8 +254,16 @@ module.exports = {
           return res.redirect(`${redirectBase}${separator}error=Data pembayaran SPMB tidak lengkap!`);
         }
 
+        insertData.jenis = 'Pemasukan';
+        insertData.lembagaId = globalLembagaId;
+        insertData.keterangan = `Pembayaran Tunggakan SPMB: ${is_daftar_ulang_spmb === 'true' ? 'Daftar Ulang' : 'Daftar Baru'}\nNama Pendaftar: ${nama_spmb}\nSatuan Pendidikan: ${satuan_pendidikan_spmb}\nMetode: ${metode_spmb || 'Cash'}\nCatatan: ${catatan_spmb || ''}`;
+
+        let createdTransaksi;
         // Panggil API SPMB untuk mencatat pembayaran di sana
         try {
+          // Buat Transaksi di SIKMA terlebih dahulu agar mendapatkan nomor_kwitansi
+          createdTransaksi = await Transaksi.create(insertData);
+
           const isDaftarUlang = is_daftar_ulang_spmb === 'true';
           const spmbBaseUrl = (req.hostname === 'localhost' || req.hostname === '127.0.0.1')
             ? 'http://localhost:5000'
@@ -263,20 +271,23 @@ module.exports = {
           const apiUrl = `${spmbBaseUrl}/api/bayar-tunggakan`;
           
           await axios.post(apiUrl, {
+            no_transaksi: createdTransaksi.nomor_kwitansi, // Nomor SIKMA dikirim ke SPMB
             nama: nama_spmb,
             satuan_pendidikan_asli: satuan_pendidikan_spmb,
             is_daftar_ulang: isDaftarUlang,
-            nominal: nominal
+            nominal: nominal,
+            catatan: catatan_spmb || ''
           }, { timeout: 5000 });
           
+          await catatLog(req.session.userId, 'INPUT', 'Transaksi', `Input Pemasukan SPMB sebesar Rp ${nominal}`);
+          return res.redirect(`${redirectBase}${separator}success=Transaksi SPMB berhasil dicatat!`);
+
         } catch (error) {
           console.error("Gagal bayar tunggakan ke SPMB:", error.response?.data || error.message);
+          // Rollback jika SPMB gagal
+          if (createdTransaksi) await createdTransaksi.destroy();
           return res.redirect(`${redirectBase}${separator}error=Gagal mencatat pembayaran di sistem SPMB. Pastikan SPMB online.`);
         }
-
-        insertData.jenis = 'Pemasukan';
-        insertData.lembagaId = globalLembagaId;
-        insertData.keterangan = `Pembayaran Tunggakan SPMB: ${is_daftar_ulang_spmb === 'true' ? 'Daftar Ulang' : 'Daftar Baru'}\nNama Pendaftar: ${nama_spmb}\nSatuan Pendidikan: ${satuan_pendidikan_spmb}\nMetode: ${metode_spmb || 'Cash'}\nCatatan: ${catatan_spmb || ''}`;
 
       } else if (jenisTransaksi === 'pengeluaran') {
         if (!uraianPengeluaran || !dibayarkanKepada || !globalLembagaId) {
@@ -808,6 +819,26 @@ module.exports = {
       const transaction = await Transaksi.findByPk(id);
       if (!transaction) return res.status(404).send('Transaksi tidak ditemukan');
 
+      const is_spmb = transaction.keterangan && transaction.keterangan.includes('Pembayaran Tunggakan SPMB');
+      if (is_spmb) {
+        try {
+          const spmbBaseUrl = (req.hostname === 'localhost' || req.hostname === '127.0.0.1')
+            ? 'http://localhost:5000'
+            : 'https://spmb.mjic.sch.id';
+          await axios.post(`${spmbBaseUrl}/api/edit-tunggakan`, {
+            no_transaksi: transaction.nomor_kwitansi,
+            nominal_lama: transaction.nominal,
+            nominal_baru: parseFloat(req.body.nominal),
+            tanggal_baru: req.body.tanggal
+          }, { timeout: 5000 });
+        } catch (error) {
+          console.error("Gagal edit transaksi SPMB:", error.response?.data || error.message);
+          const redirectUrl = req.body.redirectUrl || '/admin/laporan';
+          const separator = redirectUrl.includes('?') ? '&' : '?';
+          return res.redirect(`${redirectUrl}${separator}error=Gagal mengubah data sinkronisasi di sistem SPMB!`);
+        }
+      }
+
       const {
         tanggal,
         nominal,
@@ -879,6 +910,23 @@ module.exports = {
       const transaction = await Transaksi.findByPk(id);
       if (!transaction) return res.status(404).send('Transaksi tidak ditemukan');
 
+      const is_spmb = transaction.keterangan && transaction.keterangan.includes('Pembayaran Tunggakan SPMB');
+      if (is_spmb) {
+        try {
+          const spmbBaseUrl = (req.hostname === 'localhost' || req.hostname === '127.0.0.1')
+            ? 'http://localhost:5000'
+            : 'https://spmb.mjic.sch.id';
+          await axios.post(`${spmbBaseUrl}/api/delete-tunggakan`, {
+            no_transaksi: transaction.nomor_kwitansi
+          }, { timeout: 5000 });
+        } catch (error) {
+          console.error("Gagal hapus transaksi SPMB:", error.response?.data || error.message);
+          const redirectUrl = req.body.redirectUrl || '/admin/laporan';
+          const separator = redirectUrl.includes('?') ? '&' : '?';
+          return res.redirect(`${redirectUrl}${separator}error=Gagal menghapus sinkronisasi di sistem SPMB!`);
+        }
+      }
+
       const jenis = transaction.jenis;
       const nominal = transaction.nominal;
       await transaction.destroy();
@@ -916,7 +964,8 @@ module.exports = {
           { model: Kategori, as: 'kategori' },
           { model: Kelas, as: 'kelas' },
           { model: Santri, as: 'santri' },
-          { model: Tagihan, as: 'tagihan' }
+          { model: Tagihan, as: 'tagihan' },
+          { model: User, as: 'user' }
         ]
       });
 
@@ -927,11 +976,22 @@ module.exports = {
       // Hitung nominal terbilang
       const nominalTerbilang = helperTerbilang(transaction.nominal) + " Rupiah";
 
+      // Ambil daftar TTD jika Super Admin
+      let signatureUsers = [];
+      if (req.session.role === 'Super Admin') {
+        signatureUsers = await User.findAll({
+          where: { ttdPath: { [Op.not]: null } },
+          attributes: ['id', 'nama_lengkap', 'ttdPath']
+        });
+      }
+
       res.render('kwitansi', {
         slug,
         transaction,
         nominalTerbilang,
-        username: req.session.username
+        username: req.session.username,
+        role: req.session.role,
+        signatureUsers
       });
     } catch (error) {
       console.error(error);
@@ -951,7 +1011,8 @@ module.exports = {
         include: [
           { model: Lembaga, as: 'lembaga' },
           { model: Kelas, as: 'kelas' },
-          { model: Santri, as: 'santri' }
+          { model: Santri, as: 'santri' },
+          { model: User, as: 'user' }
         ]
       });
 
@@ -961,11 +1022,21 @@ module.exports = {
 
       const nominalTerbilang = helperTerbilang(transaction.nominal) + " Rupiah";
 
+      let signatureUsers = [];
+      if (req.session.role === 'Super Admin') {
+        signatureUsers = await User.findAll({
+          where: { ttdPath: { [Op.not]: null } },
+          attributes: ['id', 'nama_lengkap', 'ttdPath']
+        });
+      }
+
       res.render('tabungan_kwitansi', {
         slug,
         transaction,
         nominalTerbilang,
-        username: req.session.username
+        username: req.session.username,
+        role: req.session.role,
+        signatureUsers
       });
     } catch (error) {
       console.error(error);
@@ -982,7 +1053,10 @@ module.exports = {
 
       const transaction = await InfakHarian.findOne({
         where: { id: transaksiId },
-        include: [{ model: Lembaga, as: 'lembaga' }]
+        include: [
+          { model: Lembaga, as: 'lembaga' },
+          { model: User, as: 'user' }
+        ]
       });
 
       if (!transaction || transaction.lembaga.nama !== mapping) {
@@ -991,11 +1065,21 @@ module.exports = {
 
       const nominalTerbilang = helperTerbilang(transaction.nominal) + " Rupiah";
 
+      let signatureUsers = [];
+      if (req.session.role === 'Super Admin') {
+        signatureUsers = await User.findAll({
+          where: { ttdPath: { [Op.not]: null } },
+          attributes: ['id', 'nama_lengkap', 'ttdPath']
+        });
+      }
+
       res.render('infak_kwitansi', {
         slug,
         transaction,
         nominalTerbilang,
-        username: req.session.username
+        username: req.session.username,
+        role: req.session.role,
+        signatureUsers
       });
     } catch (error) {
       console.error(error);

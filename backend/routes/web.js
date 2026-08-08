@@ -77,6 +77,7 @@ adminRouter.post('/infak/delete/:id', transactionController.postDeleteInfak);
 
 // Import Santri & CRUD Santri
 adminRouter.get('/import', importController.getImportPage);
+adminRouter.post('/import/tutup-buku-spmb', importController.postTutupBukuSpmb);
 adminRouter.get('/spmb/backup', importController.getSpmbBackup);
 adminRouter.get('/santri/edit/:id', importController.getEditSantri);
 adminRouter.post('/santri/edit/:id', importController.postEditSantri);
@@ -106,9 +107,9 @@ superAdminRouter.get('/', (req, res) => res.render('super-admin/dashboard'));
 // Kelola Pengguna (User Management)
 superAdminRouter.get('/users', userController.getUsers);
 superAdminRouter.get('/users/create', userController.getCreateUser);
-superAdminRouter.post('/users/create', userController.postCreateUser);
+superAdminRouter.post('/users/create', userController.upload.single('ttdImage'), userController.postCreateUser);
 superAdminRouter.get('/users/edit/:id', userController.getEditUser);
-superAdminRouter.post('/users/edit/:id', userController.postEditUser);
+superAdminRouter.post('/users/edit/:id', userController.upload.single('ttdImage'), userController.postEditUser);
 superAdminRouter.post('/users/delete/:id', userController.postDeleteUser);
 
 router.use('/super-admin', superAdminRouter);
