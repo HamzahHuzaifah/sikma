@@ -2,4 +2,7 @@ node_modules/
 .env
 app.log
 tmp/restart.txt  
- 
+
+# Ignored uploads
+backend/public/images/signatures/*
+!backend/public/images/signatures/.gitkeep
