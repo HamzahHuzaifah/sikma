@@ -237,7 +237,7 @@
                                 </select>
                             </div>
                         <% } %>
-                        <p class="signature-name" id="ttdName" style="position: relative; z-index: 2;"><%= is_madrasah ? `<u>${ttd_name}</u>` : ttd_name %></p>
+                        <p class="signature-name" id="ttdName" style="position: relative; z-index: 2;"><%- is_madrasah ? `<u>${ttd_name}</u>` : ttd_name %></p>
                         <p class="signature-role">Bendahara <%= is_madrasah ? 'Madrasah' : transaction.lembaga.nama %></p>
                     </td>
                 </tr>
