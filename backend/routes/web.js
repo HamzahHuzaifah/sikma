@@ -112,6 +112,15 @@ superAdminRouter.get('/users/edit/:id', userController.getEditUser);
 superAdminRouter.post('/users/edit/:id', userController.upload.single('ttdImage'), userController.postEditUser);
 superAdminRouter.post('/users/delete/:id', userController.postDeleteUser);
 
+// Log Aktivitas
+superAdminRouter.get('/logs', logController.getLogsPage);
+
+// Kenaikan Kelas (Roll-over)
+const rolloverController = require('../controllers/rolloverController');
+superAdminRouter.get('/rollover', rolloverController.getRolloverPage);
+superAdminRouter.get('/api/kelas-by-lembaga/:lembagaId', rolloverController.getKelasByLembaga);
+superAdminRouter.post('/rollover/execute', rolloverController.postRolloverExecute);
+
 router.use('/super-admin', superAdminRouter);
 
 module.exports = router;

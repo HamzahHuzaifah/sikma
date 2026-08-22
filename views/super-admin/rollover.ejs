@@ -1,0 +1,218 @@
+<%- include('../partials/header', { title: 'Kenaikan Kelas (Roll-over)' }) %>
+<%- include('../partials/super-admin-sidebar') %>
+
+<div class="w-full max-w-4xl mx-auto">
+  <div class="mb-6 flex items-start gap-4">
+    <div class="bg-brand-100 text-brand-600 p-3 rounded-2xl">
+      <i class="bi bi-arrow-up-circle-fill text-2xl"></i>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Kenaikan Kelas Massal</h1>
+      <p class="text-sm text-slate-500 mt-1">Lakukan pemetaan (mapping) untuk menaikkan kelas santri di tahun ajaran baru.</p>
+    </div>
+  </div>
+
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-8 flex items-start gap-4">
+    <div class="bg-amber-100 text-amber-600 p-2.5 rounded-lg shrink-0">
+      <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+    </div>
+    <div>
+      <h4 class="font-bold text-amber-800 mb-1">Perhatian (Tindakan Tidak Bisa Dibatalkan)</h4>
+      <p class="text-sm text-amber-700 leading-relaxed">
+        Fitur ini akan memindahkan data santri secara massal ke kelas yang baru. Pastikan Anda telah memeriksa pemetaan kelas dengan benar sebelum mengeksekusinya. Santri yang diluluskan akan dimasukkan ke kelas "Alumni".
+      </p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm p-6 md:p-8">
+    <div class="mb-8">
+      <label for="lembagaSelect" class="block text-sm font-semibold text-slate-700 mb-2">Pilih Lembaga / Unit Pendidikan</label>
+      <select id="lembagaSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-brand-500 focus:border-brand-500 block p-3 transition" onchange="loadKelas(this.value)">
+        <option value="" disabled selected>-- Pilih Lembaga --</option>
+        <% lembagas.forEach(l => { %>
+          <option value="<%= l.id %>"><%= l.nama %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div id="mappingContainer" class="hidden">
+      <h3 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">Pemetaan Kelas</h3>
+      
+      <form id="rolloverForm" onsubmit="executeRollover(event)">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden mb-6">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 bg-slate-100">
+                <th class="py-3 px-4 font-semibold text-sm text-slate-700">Kelas Asal (Saat Ini)</th>
+                <th class="py-3 px-4 font-semibold text-sm text-slate-700 w-12 text-center"><i class="bi bi-arrow-right"></i></th>
+                <th class="py-3 px-4 font-semibold text-sm text-slate-700">Naik ke Kelas</th>
+              </tr>
+            </thead>
+            <tbody id="kelasTableBody" class="divide-y divide-slate-200">
+              <!-- Baris kelas akan di-generate via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="resetForm()" class="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-medium transition">
+            Batal
+          </button>
+          <button type="submit" id="btnExecute" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-medium shadow-sm transition flex items-center gap-2">
+            <i class="bi bi-rocket-takeoff-fill"></i> Eksekusi Kenaikan Kelas
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div id="loadingState" class="hidden py-12 text-center">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-brand-600 mb-4"></div>
+      <p class="text-slate-500 font-medium">Memuat data kelas...</p>
+    </div>
+    
+    <div id="emptyState" class="py-12 text-center">
+      <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+        <i class="bi bi-building text-2xl"></i>
+      </div>
+      <p class="text-slate-500 font-medium">Silakan pilih lembaga di atas untuk mulai pemetaan kelas.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentKelasList = [];
+
+  async function loadKelas(lembagaId) {
+    if (!lembagaId) return;
+
+    document.getElementById('emptyState').classList.add('hidden');
+    document.getElementById('mappingContainer').classList.add('hidden');
+    document.getElementById('loadingState').classList.remove('hidden');
+
+    try {
+      const response = await fetch(`/super-admin/api/kelas-by-lembaga/${lembagaId}`);
+      const result = await response.json();
+
+      if (result.success) {
+        currentKelasList = result.data.filter(k => k.nama.toLowerCase() !== 'alumni'); // Kecualikan kelas alumni dari list kelas asal
+        renderMappingTable();
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('mappingContainer').classList.remove('hidden');
+      } else {
+        alert('Gagal memuat data kelas: ' + result.message);
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('emptyState').classList.remove('hidden');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Terjadi kesalahan jaringan.');
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('emptyState').classList.remove('hidden');
+    }
+  }
+
+  function renderMappingTable() {
+    const tbody = document.getElementById('kelasTableBody');
+    tbody.innerHTML = '';
+
+    if (currentKelasList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="3" class="py-4 px-4 text-center text-slate-500">Tidak ada kelas aktif di lembaga ini.</td></tr>`;
+      return;
+    }
+
+    currentKelasList.forEach(kelas => {
+      // Buat pilihan dropdown untuk kelas tujuan
+      let optionsHTML = `<option value="">-- Tetap di kelas ini --</option>`;
+      
+      currentKelasList.forEach(targetKelas => {
+        if (targetKelas.id !== kelas.id) {
+          optionsHTML += `<option value="${targetKelas.id}">${targetKelas.nama}</option>`;
+        }
+      });
+      
+      optionsHTML += `<option value="LULUS" class="text-brand-600 font-bold">🎓 LULUS / ALUMNI</option>`;
+
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-50 transition';
+      tr.innerHTML = `
+        <td class="py-3 px-4">
+          <div class="font-medium text-slate-800">${kelas.nama}</div>
+          <div class="text-xs text-slate-500">ID Kelas: ${kelas.id}</div>
+        </td>
+        <td class="py-3 px-4 text-center text-slate-300">
+          <i class="bi bi-arrow-right"></i>
+        </td>
+        <td class="py-3 px-4">
+          <select name="mapping_${kelas.id}" data-old-id="${kelas.id}" class="mapping-select w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2">
+            ${optionsHTML}
+          </select>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function resetForm() {
+    document.getElementById('lembagaSelect').value = '';
+    document.getElementById('mappingContainer').classList.add('hidden');
+    document.getElementById('emptyState').classList.remove('hidden');
+  }
+
+  async function executeRollover(e) {
+    e.preventDefault();
+
+    const lembagaId = document.getElementById('lembagaSelect').value;
+    if (!lembagaId) return alert('Pilih lembaga terlebih dahulu.');
+
+    const mappingSelects = document.querySelectorAll('.mapping-select');
+    const mappingData = {};
+    let hasChanges = false;
+
+    mappingSelects.forEach(select => {
+      const targetVal = select.value;
+      if (targetVal) {
+        mappingData[select.getAttribute('data-old-id')] = targetVal;
+        hasChanges = true;
+      }
+    });
+
+    if (!hasChanges) {
+      return alert('Anda belum melakukan pemetaan untuk kelas manapun (semua diset "Tetap"). Silakan pilih tujuan kenaikan kelas minimal untuk 1 kelas.');
+    }
+
+    if (!confirm('PERHATIAN: Apakah Anda yakin telah memeriksa pemetaan kelas ini? Proses ini akan memindahkan SEMUA santri di kelas tersebut ke kelas baru secara permanen.|Ya, Eksekusi Sekarang!')) {
+      return;
+    }
+
+    const btn = document.getElementById('btnExecute');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i> Memproses...';
+    btn.disabled = true;
+
+    try {
+      const response = await fetch('/super-admin/rollover/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lembagaId, mapping: mappingData })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('Berhasil: ' + result.message);
+        // Reload list kelas (karena bisa jadi ada kelas "Alumni" yang baru dibuat)
+        loadKelas(lembagaId);
+      } else {
+        alert('Gagal: ' + result.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Terjadi kesalahan jaringan.');
+    } finally {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

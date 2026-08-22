@@ -1,6 +1,13 @@
 const { LogAktivitas, User } = require('../models');
 
 module.exports = {
+  getLogsPage: (req, res) => {
+    res.render('super-admin/logs', {
+      username: req.session.username,
+      path: '/super-admin/logs'
+    });
+  },
+
   getLogs: async (req, res) => {
     try {
       const page = parseInt(req.query.page) || 1;

@@ -1502,6 +1502,8 @@ module.exports = {
         order: [['tanggal', 'ASC'], ['createdAt', 'ASC']]
       });
 
+      const signatureUsers = await User.findAll({ attributes: ['id', 'nama_lengkap'] });
+
       res.render('laporan_cetak_f4', {
         title: 'Cetak Laporan',
         transactions,
@@ -1511,7 +1513,8 @@ module.exports = {
         lembagaSingkatan,
         lembagaNama,
         bgImage,
-        user: req.user
+        user: req.user,
+        signatureUsers
       });
 
     } catch (error) {
@@ -1595,6 +1598,8 @@ module.exports = {
         order: [['tanggal', 'ASC'], ['createdAt', 'ASC']]
       });
 
+      const signatureUsers = await User.findAll({ attributes: ['id', 'nama_lengkap'] });
+
       res.render('tabungan_laporan_cetak_f4', {
         title: 'Cetak Laporan Tabungan',
         transactions,
@@ -1604,7 +1609,8 @@ module.exports = {
         lembagaSingkatan,
         lembagaNama,
         bgImage,
-        user: req.user
+        user: req.user,
+        signatureUsers
       });
 
     } catch (error) {
@@ -1681,6 +1687,8 @@ module.exports = {
         order: [['tanggal', 'ASC'], ['createdAt', 'ASC']]
       });
 
+      const signatureUsers = await User.findAll({ attributes: ['id', 'nama_lengkap'] });
+
       res.render('infak_laporan_cetak_f4', {
         title: 'Cetak Laporan Infak',
         transactions,
@@ -1690,7 +1698,8 @@ module.exports = {
         lembagaSingkatan,
         lembagaNama,
         bgImage,
-        user: req.user
+        user: req.user,
+        signatureUsers
       });
 
     } catch (error) {
