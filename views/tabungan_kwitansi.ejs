@@ -61,6 +61,19 @@
         
         let lembaga_name = transaction.lembaga ? transaction.lembaga.nama.toUpperCase() : '';
         let is_madrasah = lembaga_name.includes('MADRASAH');
+
+        let lemName = transaction.lembaga ? transaction.lembaga.nama.trim() : '';
+        let kelName = transaction.kelas ? transaction.kelas.nama.trim() : '';
+        let satuan_pendidikan = lemName;
+        if (kelName) {
+            if (lemName && kelName.toLowerCase().startsWith(lemName.toLowerCase())) {
+                satuan_pendidikan = kelName;
+            } else if (lemName) {
+                satuan_pendidikan = lemName + ' ' + kelName;
+            } else {
+                satuan_pendidikan = kelName;
+            }
+        }
     %>
 
     <div class="page-wrapper" style="background-image: url('/images/Template%20Laporan%20dan%20Kwintasi%20<%= transaction.lembaga.nama %>.webp'), url('/images/Template%20Laporan%20dan%20Kwintasi.webp');">
@@ -125,7 +138,7 @@
                         <td class="label" style="width: 200px;">Satuan Pendidikan</td>
                         <td class="colon" style="width: 20px;">:</td>
                         <td class="value" style="flex: 1;">
-                            <%= transaction.lembaga.nama %> <%= transaction.kelas ? transaction.kelas.nama : '' %>
+                            <%= satuan_pendidikan %>
                         </td>
                     </tr>
                     <tr data-row-id="untukPembayaran" style="display: flex; width: 100%; order: <%= getOrder('untukPembayaran') %>;">

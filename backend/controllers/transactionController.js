@@ -221,7 +221,7 @@ module.exports = {
             lembagaId: tagihan.lembagaId,
             kelasId: kelasId,
             santriId: santriId,
-            keterangan: `Pembayaran: ${tagihan.nama}${santriName ? ' - ' + santriName : ''}\nMetode: ${req.body.metode_tagihan || 'Cash'}\nCatatan: ${req.body.catatan_tagihan || ''}`
+            keterangan: `Pembayaran: ${tagihan.nama}\nMetode: ${req.body.metode_tagihan || 'Cash'}\nCatatan: ${req.body.catatan_tagihan || ''}`
           };
 
           await Transaksi.create(specificInsertData);
@@ -881,7 +881,7 @@ module.exports = {
         const santri = await Santri.findByPk(santriId);
         const santriName = santri ? santri.nama : '';
         const tagihanName = tagihan ? tagihan.nama : '';
-        updateData.keterangan = `Pembayaran: ${tagihanName}${santriName ? ' - ' + santriName : ''}\nMetode: ${metode_tagihan || 'Cash'}\nCatatan: ${catatan_tagihan || ''}`;
+        updateData.keterangan = `Pembayaran: ${tagihanName}\nMetode: ${metode_tagihan || 'Cash'}\nCatatan: ${catatan_tagihan || ''}`;
       } else if (transaction.jenis === 'Pemasukan') {
         updateData.lembagaId = globalLembagaId;
         updateData.keterangan = `Uraian: ${uraianPemasukan}\nDiterima Dari: ${diterimaDari}\nPemberi: ${pemberi}\nMetode: ${metode_pemasukan || 'Cash'}\nCatatan: ${catatan_pemasukan || ''}`;

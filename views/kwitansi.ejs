@@ -36,6 +36,14 @@
         
         let uraian_pembayaran = transaction.keterangan ? transaction.keterangan.split('\nMetode:')[0].trim() : '';
         
+        // Bersihkan nama santri dari akhir uraian pembayaran jika masih tersisa (misal data transaksi lama)
+        if (transaction.santri && transaction.santri.nama) {
+            const sName = transaction.santri.nama.trim();
+            if (sName && uraian_pembayaran.toLowerCase().endsWith(' - ' + sName.toLowerCase())) {
+                uraian_pembayaran = uraian_pembayaran.slice(0, -(sName.length + 3)).trim();
+            }
+        }
+        
         let layoutMarginTop = transaction.layoutMarginTop || '6.5cm';
         let layoutMarginLeft = transaction.layoutMarginLeft || '2.5cm';
         let ttdVisible = transaction.ttdVisible !== false;
@@ -74,6 +82,25 @@
             if (lines.length > 0) spmb_jenis = lines[0].replace('Pembayaran Tunggakan SPMB: ', '').trim();
             if (lines.length > 1) spmb_nama = lines[1].replace('Nama Pendaftar: ', '').trim();
             if (lines.length > 2 && lines[2].startsWith('Satuan Pendidikan: ')) spmb_satuan = lines[2].replace('Satuan Pendidikan: ', '').trim();
+        }
+
+        let satuan_pendidikan = '';
+        if (is_spmb) {
+            satuan_pendidikan = spmb_satuan || (transaction.lembaga ? transaction.lembaga.nama : '');
+        } else {
+            const lemName = transaction.lembaga ? transaction.lembaga.nama.trim() : '';
+            const kelName = transaction.kelas ? transaction.kelas.nama.trim() : '';
+            if (kelName) {
+                if (lemName && kelName.toLowerCase().startsWith(lemName.toLowerCase())) {
+                    satuan_pendidikan = kelName;
+                } else if (lemName) {
+                    satuan_pendidikan = lemName + ' ' + kelName;
+                } else {
+                    satuan_pendidikan = kelName;
+                }
+            } else {
+                satuan_pendidikan = lemName;
+            }
         }
     %>
 
@@ -148,7 +175,7 @@
                         <td class="label" style="width: 200px;">Satuan Pendidikan</td>
                         <td class="colon" style="width: 20px;">:</td>
                         <td class="value" style="flex: 1;">
-                            <%= is_spmb ? spmb_satuan || transaction.lembaga.nama : (transaction.lembaga.nama + ' ' + (transaction.kelas ? transaction.kelas.nama : '')) %>
+                            <%= satuan_pendidikan %>
                         </td>
                     </tr>
                     <tr data-row-id="untukPembayaran" style="display: flex; width: 100%; order: <%= getOrder('untukPembayaran') %>;">
@@ -158,7 +185,7 @@
                         </td>
                         <td class="label" style="width: 200px;">Untuk Pembayaran</td>
                         <td class="colon" style="width: 20px;">:</td>
-                        <td class="value" style="flex: 1;"><span class="editable-field" data-field="uraian_pembayaran"><%= is_spmb ? 'Pembayaran ' + spmb_jenis + ' - ' + spmb_nama : uraian_pembayaran %></span></td>
+                        <td class="value" style="flex: 1;"><span class="editable-field" data-field="uraian_pembayaran"><%= is_spmb ? 'Pembayaran ' + spmb_jenis : uraian_pembayaran %></span></td>
                     </tr>
                 <% } else { %>
                     <tr data-row-id="diterimaDari" style="display: flex; width: 100%; order: <%= getOrder('diterimaDari') %>;">
